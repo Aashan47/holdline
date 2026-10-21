@@ -18,7 +18,7 @@ from typing import Any, Callable, Iterator, Optional
 
 STEP_KINDS = ("tool", "llm", "decision", "error", "other")
 
-_current: contextvars.ContextVar[Optional["Trace"]] = contextvars.ContextVar(
+_current: "contextvars.ContextVar[Optional[Trace]]" = contextvars.ContextVar(
     "holdline_trace", default=None)
 
 
