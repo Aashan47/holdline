@@ -92,7 +92,8 @@ def test_reports_render():
     md = report.gate_markdown(res, cand, base)
     assert "FAIL" in md and "| pass rate |" in md and "refund-damaged" in md
     page = report.run_html(cand, res, base)
-    assert page.startswith("<!doctype html>") and "refund-damaged" in page and "<script" not in page
+    assert page.startswith("<!doctype html>") and "refund-damaged" in page
+    assert "src=" not in page and "href=\"http" not in page and "@import" not in page  # self-contained
     assert "pass rate" in report.text_summary(base)
 
 

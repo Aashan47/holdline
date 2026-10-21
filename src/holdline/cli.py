@@ -117,6 +117,7 @@ def cmd_calibrate(a) -> int:
                               min_n=a.min_n)
     print(json.dumps(rep, indent=1) if a.json else report.calibration_text(rep))
     _write(a.out, json.dumps(rep, indent=1))
+    _write(a.html, report.calibration_html(rep, a.label) if a.html else "")
     return 1 if a.strict and not rep["fit_to_gate"] else 0
 
 
@@ -176,6 +177,8 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--min-n", dest="min_n", type=int, default=30)
     c.add_argument("--strict", action="store_true", help="exit 1 if the judge is not fit")
     c.add_argument("--out", help="write the report JSON here")
+    c.add_argument("--html", help="write an HTML calibration report here")
+    c.add_argument("--label", default="judge", help="name of the judge in the report")
     c.add_argument("--json", action="store_true")
     c.set_defaults(fn=cmd_calibrate)
 
