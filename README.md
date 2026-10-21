@@ -165,8 +165,9 @@ Raw runs, traces and the gate report are in [`examples/helpdesk/results/`](examp
 
 ![holdline architecture](https://raw.githubusercontent.com/Aashan47/holdline/main/docs/architecture.svg)
 
-[ARCHITECTURE.md](ARCHITECTURE.md) explains each part; [DECISIONS.md](DECISIONS.md) records every
-design decision and the alternatives considered.
+1. **Trust the judge** (once): compare the LLM judge with human labels; a judge that is not fit may not grade.
+2. **Evaluate** (every change): run each case k times, record a trace, grade every run, save `run.json`.
+3. **Decide** (in CI): compare with a baseline run case by case and return PASS or FAIL with the reasons.
 
 ## License
 
