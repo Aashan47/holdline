@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Judge check: can you trust your LLM judge? · holdline</title>
+<meta name="description" content="Drop in your LLM judge's verdicts next to human labels. See agreement beyond chance, false passes, and whether the judge is lenient on one kind of case and harsh on another. Runs in your browser.">
+<meta property="og:title" content="Can you trust your LLM judge?">
+<meta property="og:description" content="A free check that runs in your browser: kappa, false passes and bias by group, from a CSV of judge and human verdicts.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22'%3E%3Crect width='22' height='22' rx='6' fill='%2314161b'/%3E%3Cpath d='M5 13.5h12' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='11' cy='13.5' r='3' fill='%2314161b' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:light;--bg:#f5f6f8;--surface:#fff;--surface-2:#f9fafb;--line:#e3e5ea;--line-2:#eef0f3;
+--ink:#14161b;--ink-2:#4b5160;--ink-3:#8a90a0;--accent:#2a78d6;--accent-soft:#eaf1fc;--accent-mid:#86b6ef;
+--good:#0ca30c;--good-bg:#e9f6e9;--bad:#d03b3b;--bad-bg:#fbeaea;--warn-bg:#fef5de;
+--sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable","Segoe UI",system-ui,Roboto,sans-serif;
+--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+code,pre,.mono{font-family:var(--mono);font-size:13px}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+[hidden]{display:none!important}
+
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line-2)}
+header .in{max-width:1120px;margin:0 auto;padding:0 24px;height:56px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:650;text-decoration:none}
+.crumb{color:var(--ink-3)}.crumb b{color:var(--ink);font-weight:550}
+header .sp{flex:1}
+header nav{display:flex;gap:18px;font-size:14px;color:var(--ink-2)}
+header nav a{text-decoration:none}header nav a:hover{color:var(--ink)}
+
+main{max-width:1120px;margin:0 auto;padding:40px 24px 80px}
+.hero h1{font-size:40px;line-height:1.1;letter-spacing:-.025em;font-weight:650;margin:0;max-width:20ch}
+.hero p{font-size:17px;color:var(--ink-2);max-width:66ch;margin:14px 0 0}
+.trust{display:inline-flex;gap:8px;align-items:center;margin-top:14px;font-size:13.5px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:5px 12px 5px 10px}
+.trust svg{color:var(--good)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.input{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:0;margin-top:28px;overflow:hidden}
+.drop{margin:18px;border:1.5px dashed #c9cdd6;border-radius:12px;min-height:210px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;transition:background .15s,border-color .15s}
+.drop.over{background:var(--accent-soft);border-color:var(--accent)}
+.drop .ic{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:12px}
+.drop b{font-size:16px}
+.drop p{margin:4px 0 14px;color:var(--ink-2);font-size:14px}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:14px;font-weight:500;text-decoration:none}
+.btn:hover{background:var(--surface-2);border-color:#cfd3db}
+.btn.pri{background:var(--ink);border-color:var(--ink);color:#fff}.btn.pri:hover{background:#2a2d35}
+.btn.sm{padding:6px 11px;font-size:13px}
+.linkbtn{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:550;padding:0;font-size:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.spec{border-left:1px solid var(--line-2);padding:22px 24px;background:var(--surface-2)}
+.spec h2{font-size:14px;margin:0 0 10px;font-weight:620}
+.spec p{margin:0 0 12px;font-size:13.5px;color:var(--ink-2)}
+.mini{width:100%;border-collapse:collapse;font:12.5px var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.mini th,.mini td{padding:6px 9px;border-bottom:1px solid var(--line-2);text-align:left}
+.mini th{color:var(--ink-3);font-weight:500}
+.mini tr:last-child td{border-bottom:0}
+.opt{color:var(--ink-3);font-family:var(--sans);font-size:12px}
+.spec .samp{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spec .samp span{font-size:12.5px;color:var(--ink-3)}
+textarea{width:calc(100% - 36px);margin:0 18px 18px;min-height:150px;border:1px solid var(--line);border-radius:10px;padding:12px;font:13px var(--mono);resize:vertical;background:var(--surface)}
+
+.cols{margin-top:16px;padding:14px 18px;display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.file{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.file .chip{font-size:13px;font-weight:550;background:var(--line-2);border-radius:8px;padding:4px 10px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file .n{font-size:13px;color:var(--ink-3)}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-3)}
+select,input[type=number]{border:1px solid var(--line);border-radius:9px;padding:6px 10px;background:var(--surface);font-size:13.5px;min-width:130px}
+input[type=number]{min-width:0;width:86px}
+details.rules{margin-top:10px}
+details.rules summary{cursor:pointer;font-size:13px;color:var(--ink-2);padding:2px 18px 10px}
+.rulesrow{display:flex;gap:14px;flex-wrap:wrap;padding:0 18px 14px}
+
+.alert{margin-top:16px;display:flex;gap:10px;align-items:flex-start;padding:14px 18px;border-radius:12px;background:var(--bad-bg);border:1px solid #f1c9c9}
+.alert svg{flex:none;margin-top:2px;color:var(--bad)}
+.alert b{display:block}
+.alert span{color:var(--ink-2);font-size:14px}
+
+/* results: same vocabulary as the holdline reports */
+.res{margin-top:28px}
+.verdict{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;padding:20px 22px;position:relative;overflow:hidden}
+.verdict:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--good)}
+.verdict.fail:before{background:var(--bad)}
+.vi{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--good-bg);color:var(--good)}
+.verdict.fail .vi{background:var(--bad-bg);color:var(--bad)}
+.vt{font-size:18px;font-weight:650;letter-spacing:-.01em}
+.vs{color:var(--ink-2);margin-top:3px;max-width:90ch}
+.vl{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.vl li{display:flex;gap:8px;align-items:flex-start}.vl svg{flex:none;margin-top:4px}
+.i-bad{color:var(--bad)}.i-good{color:var(--good)}
+.vact{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:16px;overflow:hidden}
+.stat{padding:16px 18px;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);margin:0 -1px -1px 0;display:flex;flex-direction:column;gap:5px;min-height:116px}
+.stat .l{font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px}.stat .l span{color:var(--ink-3)}
+.stat .v{font-size:26px;font-weight:650;letter-spacing:-.02em;line-height:1.1}
+.stat .f{font-size:12px;color:var(--ink-3);margin-top:auto}
+.track{position:relative;height:8px;border-radius:99px;background:var(--line-2);margin:4px 0 2px}
+.track .rng{position:absolute;top:0;bottom:0;border-radius:99px;background:#cde2fb}
+.track .pt{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)}
+.track .fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 10px;flex-wrap:wrap}
+.sh h2{font-size:15px;margin:0;font-weight:620}.sh p{margin:0;color:var(--ink-3);font-size:12.5px}
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;padding:16px 18px}
+.cm .h{font-size:12px;color:var(--ink-3);display:flex;align-items:center;justify-content:center;text-align:center}
+.cm .rh{justify-content:flex-start;padding-right:6px}
+.cmc{border-radius:10px;padding:14px;min-height:84px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid transparent}
+.cmc b{font-size:24px;font-weight:650}.cmc span{font-size:12px;color:var(--ink-2)}
+.cmc.fp{border-color:var(--bad);box-shadow:inset 0 0 0 1px var(--bad)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);padding:10px 18px;border-top:1px solid var(--line-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+.div{padding:14px 18px 6px}
+.drow,.dscale{display:grid;grid-template-columns:minmax(80px,150px) 1fr 64px;gap:12px;align-items:center}
+.drow{padding:8px 0}.dscale{font-size:11.5px;color:var(--ink-3);padding-bottom:8px}
+.dscale div:nth-child(2){display:flex;justify-content:space-between;white-space:nowrap;gap:8px}
+.dtrack{position:relative;height:16px}
+.dtrack .ax{position:absolute;left:50%;top:-4px;bottom:-4px;width:1px;background:var(--ink-3)}
+.dtrack .bar{position:absolute;top:2px;bottom:2px;border-radius:4px}
+.note{display:flex;gap:8px;align-items:flex-start;padding:12px 18px;border-top:1px solid var(--line-2);font-size:13px}.note svg{margin-top:3px;flex:none}
+.empty{padding:28px 20px;text-align:center;color:var(--ink-2)}.empty b{display:block;color:var(--ink);margin-bottom:4px}
+table.t{width:100%;border-collapse:collapse;font-size:13.5px}
+.t th{text-align:left;font-weight:550;color:var(--ink-3);font-size:12.5px;padding:10px 18px;border-bottom:1px solid var(--line)}
+.t td{padding:9px 18px;border-bottom:1px solid var(--line-2)}
+.t tr:last-child td{border-bottom:0}.t .r{text-align:right}
+.chipv{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:550}
+.chipv:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--good)}.chipv.f:before{background:var(--bad)}
+.tag{font-size:11.5px;font-weight:600;border-radius:6px;padding:1px 7px}
+.tag.fp{background:var(--bad-bg)}.tag.ff{background:var(--warn-bg)}
+.more{display:block;width:100%;border:0;border-top:1px solid var(--line-2);background:none;padding:11px;color:var(--accent);font-weight:550;cursor:pointer;font-size:13.5px}
+.blk{margin-top:28px}
+.ci{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:28px}
+.ci>*,.two>*,.input>*{min-width:0}
+.code{background:var(--ink);color:#e9ebef;border-radius:12px;padding:16px 18px;font:13px/1.7 var(--mono);overflow:auto;margin:0}
+.code .c{color:#8a90a0}
+.howto{padding:18px 20px}.howto p{margin:0 0 12px;color:var(--ink-2);font-size:14px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:550;box-shadow:0 10px 30px rgba(20,22,27,.25)}
+footer{max-width:1120px;margin:0 auto;padding:24px;border-top:1px solid var(--line);color:var(--ink-3);font-size:13px;display:flex;gap:18px;flex-wrap:wrap}
+footer a{color:var(--ink-2);text-decoration:none}footer .sp{flex:1}
+
+@media(max-width:860px){.input,.two,.ci{grid-template-columns:1fr}.spec{border-left:0;border-top:1px solid var(--line-2)}
+header nav{display:none}.hero h1{font-size:32px}}
+@media(max-width:560px){main{padding:28px 16px 64px}header .in{padding:0 16px}.hero h1{font-size:28px}
+.drop{margin:12px;min-height:180px}textarea{width:calc(100% - 24px);margin:0 12px 12px}.cols{padding:12px 14px}
+select{min-width:0;width:100%}label.f{flex:1 1 45%}.stat{min-height:0;padding:14px}.stat .v{font-size:22px}
+.verdict{padding:16px;gap:12px}.t th,.t td{padding:8px 10px;font-size:12.5px}.t .hs{display:none}.crumb .hs{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="in">
+  <a class="brand" href="../" aria-label="holdline home"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect width="22" height="22" rx="6" fill="#14161b"/><path d="M5 13.5h12" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="13.5" r="3" fill="#14161b" stroke="#fff" stroke-width="2"/><path d="M5 8h4" stroke="#fff" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/></svg>holdline</a>
+  <span class="crumb">/ <b>Judge check</b></span>
+  <span class="sp"></span>
+  <nav><a href="../">What holdline does</a><a href="https://github.com/Aashan47/holdline">GitHub</a></nav>
+</div></header>
+
+<main>
+  <section class="hero">
+    <h1>Can you trust your LLM judge?</h1>
+    <p>Put the judge's verdicts next to human labels for the same items. You'll see whether it agrees beyond chance, how often it passes what a person failed, and whether it's lenient on one kind of case and harsh on another.</p>
+    <span class="trust"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Runs in your browser. Your file never leaves this page.</span>
+  </section>
+
+  <section class="panel input" aria-label="Your labels">
+    <div>
+      <div class="drop" id="drop">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5M3 13h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <b>Drop a CSV, JSONL or JSON file</b>
+        <p>One row per item, with the human verdict and the judge's verdict.</p>
+        <div class="row"><label class="btn pri" for="file">Choose a file</label><input id="file" type="file" accept=".csv,.tsv,.json,.jsonl,.txt" hidden>
+          <button type="button" class="btn" id="pasteBtn">Paste data</button></div>
+      </div>
+      <textarea id="paste" hidden placeholder="id,human,judge,group&#10;q1,pass,pass,short-answer&#10;q2,fail,pass,short-answer"></textarea>
+    </div>
+    <div class="spec">
+      <h2>What the file needs</h2>
+      <p>A human verdict and a judge verdict per item. Pass/fail, yes/no, true/false or 1/0 all work. Add a group to see whether the judge's bias changes by kind of case.</p>
+      <table class="mini"><tr><th>id</th><th>human</th><th>judge</th><th>group <span class="opt">optional</span></th></tr>
+        <tr><td>q1</td><td>pass</td><td>pass</td><td>short-answer</td></tr>
+        <tr><td>q2</td><td>fail</td><td>pass</td><td>short-answer</td></tr>
+        <tr><td>q3</td><td>pass</td><td>fail</td><td>multi-step</td></tr></table>
+      <div class="samp"><button type="button" class="btn sm" id="sample">Try the synthetic sample</button><span>80 made-up items, built to show a judge whose bias flips by group</span></div>
+    </div>
+  </section>
+
+  <div class="alert" id="err" hidden role="alert"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5l6 11H2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".9" fill="currentColor"/></svg><div><b id="errT"></b><span id="errM"></span></div></div>
+
+  <section class="panel" id="cols" hidden aria-label="Columns">
+    <div class="cols">
+      <div class="file"><span class="chip" id="fname"></span><span class="n num" id="frows"></span></div>
+      <label class="f">Human verdict<select id="cHuman"></select></label>
+      <label class="f">Judge verdict<select id="cJudge"></select></label>
+      <label class="f">Group<select id="cGroup"></select></label>
+      <label class="f">Judge score<select id="cScore"></select></label>
+      <button type="button" class="btn sm" id="clear">Clear</button>
+    </div>
+    <details class="rules"><summary>Rules the judge must meet to gate releases</summary>
+      <div class="rulesrow">
+        <label class="f">Minimum kappa (lower bound)<input type="number" id="rK" value="0.6" step="0.05" min="0" max="1"></label>
+        <label class="f">Maximum false-pass rate<input type="number" id="rF" value="0.10" step="0.01" min="0" max="1"></label>
+        <label class="f">Minimum labelled items<input type="number" id="rN" value="30" step="1" min="1"></label>
+      </div></details>
+  </section>
+
+  <section id="out" class="res" hidden aria-live="polite"></section>
+
+  <section class="ci" id="ci">
+    <div class="panel howto"><div class="sh"><h2>Check it on every change</h2></div>
+      <p>The same check runs in CI with the open-source package, and fails the build when the judge isn't fit.</p>
+      <pre class="code"><span class="c"># labels.jsonl: {"id", "human", "judge", "group"}</span>
+pip install holdline
+holdline calibrate --labels labels.jsonl --strict</pre></div>
+    <div class="panel howto"><div class="sh"><h2>What the numbers mean</h2></div>
+      <p><b>Kappa</b> is agreement corrected for chance. If most outputs pass, a judge that always says pass agrees often and has a kappa of 0.</p>
+      <p><b>False-pass rate</b> is how often the judge passed what a person failed. In a release gate, that's the error that lets a regression ship.</p>
+      <p style="margin:0"><b>Bias by group</b> shows whether the judge passes more or less than people do on each kind of case. Opposite signs mean one threshold can't fix it.</p></div>
+  </section>
+</main>
+<footer><span>Part of <a href="../">holdline</a>, open source, MIT licence</span><a href="https://github.com/Aashan47/holdline">GitHub</a><a href="https://pypi.org/project/holdline/">PyPI</a><span class="sp"></span><span>Built by <a href="https://www.aashanjaved.com">Aashan Javed</a></span></footer>
+<div class="toast" id="toast" hidden></div>
+
+<script src="judge.js"></script>
+<script id="sampleData" type="application/x-ndjson">
+{"id": "short-answer-00", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-01", "group": "short-answer", "human": "fail", "judge": "pass"}
+{"id": "short-answer-02", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-03", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-04", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-05", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-06", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-07", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-08", "group": "short-answer", "human": "fail", "judge": "fail"}
+{"id": "short-answer-09", "group": "short-answer", "human": "fail", "judge": "fail"}
+{"id": "short-answer-10", "group": "short-answer", "human": "fail", "judge": "pass"}
+{"id": "short-answer-11", "group": "short-answer", "human": "fail", "judge": "pass"}
+{"id": "short-answer-12", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-13", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-14", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-15", "group": "short-answer", "human": "fail", "judge": "fail"}
+{"id": "short-answer-16", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-17", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-18", "group": "short-answer", "human": "fail", "judge": "fail"}
+{"id": "short-answer-19", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-20", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-21", "group": "short-answer", "human": "fail", "judge": "fail"}
+{"id": "short-answer-22", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-23", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-24", "group": "short-answer", "human": "fail", "judge": "pass"}
+{"id": "short-answer-25", "group": "short-answer", "human": "fail", "judge": "pass"}
+{"id": "short-answer-26", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-27", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-28", "group": "short-answer", "human": "pass", "judge": "pass"}
+{"id": "short-answer-29", "group": "short-answer", "human": "fail", "judge": "fail"}
+{"id": "multi-step-00", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-01", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-02", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-03", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-04", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-05", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-06", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-07", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-08", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-09", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-10", "group": "multi-step", "human": "pass", "judge": "fail"}
+{"id": "multi-step-11", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-12", "group": "multi-step", "human": "pass", "judge": "fail"}
+{"id": "multi-step-13", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-14", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-15", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-16", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-17", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-18", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-19", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-20", "group": "multi-step", "human": "pass", "judge": "fail"}
+{"id": "multi-step-21", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-22", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-23", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-24", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-25", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-26", "group": "multi-step", "human": "pass", "judge": "pass"}
+{"id": "multi-step-27", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-28", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "multi-step-29", "group": "multi-step", "human": "fail", "judge": "fail"}
+{"id": "refusal-00", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-01", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-02", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-03", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-04", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-05", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-06", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-07", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-08", "group": "refusal", "human": "fail", "judge": "fail"}
+{"id": "refusal-09", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-10", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-11", "group": "refusal", "human": "fail", "judge": "fail"}
+{"id": "refusal-12", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-13", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-14", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-15", "group": "refusal", "human": "fail", "judge": "fail"}
+{"id": "refusal-16", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-17", "group": "refusal", "human": "pass", "judge": "pass"}
+{"id": "refusal-18", "group": "refusal", "human": "pass", "judge": "fail"}
+{"id": "refusal-19", "group": "refusal", "human": "pass", "judge": "pass"}
+</script>
+<script>
+(function () {
+  var J = window.HoldlineJudge, rows = [], fileName = "";
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]; }); };
+  var pct = function (v) { return v == null ? "n/a" : (v * 100).toFixed(1) + "%"; };
+  var clamp = function (v) { return Math.max(0, Math.min(1, v)); };
+  var ICON = {
+    x: '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    check: '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    alert: '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5l6 11H2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".9" fill="currentColor"/></svg>'
+  };
+
+  function toast(t) { var el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 1800); }
+  function showError(title, msg) { $("errT").textContent = title; $("errM").textContent = msg; $("err").hidden = false; }
+  function hideError() { $("err").hidden = true; }
+
+  function load(text, name) {
+    hideError();
+    try { rows = J.parse(text).filter(function (r) { return r && typeof r === "object"; }); }
+    catch (e) { return showError("We couldn't read that file.", e.message + ". Use a CSV with a header row, JSON lines, or a JSON list."); }
+    if (!rows.length) return showError("That file has no rows.", "Add one row per labelled item, with a header row.");
+    fileName = name;
+    var columns = []; rows.forEach(function (r) { Object.keys(r).forEach(function (k) { if (columns.indexOf(k) < 0) columns.push(k); }); });
+    var g = J.guessColumns(columns);
+    fill("cHuman", columns, g.human, false); fill("cJudge", columns, g.judge, false);
+    fill("cGroup", columns, g.group, true); fill("cScore", columns, g.judge_score, true);
+    $("fname").textContent = name; $("frows").textContent = rows.length + " rows";
+    $("cols").hidden = false;
+    run();
+  }
+
+  function fill(id, columns, guess, optional) {
+    var s = $(id), html = optional ? '<option value="">None</option>' : (guess ? "" : '<option value="">Choose a column</option>');
+    columns.forEach(function (c) { html += '<option value="' + esc(c) + '"' + (c === guess ? " selected" : "") + ">" + esc(c) + "</option>"; });
+    s.innerHTML = html;
+  }
+
+  function run() {
+    hideError();
+    var h = $("cHuman").value, j = $("cJudge").value, g = $("cGroup").value, sc = $("cScore").value;
+    if (!h || !j) { $("out").hidden = true; return showError("Pick the two verdict columns.", "Choose which column holds the human verdict and which holds the judge's verdict."); }
+    if (h === j) { $("out").hidden = true; return showError("The human and judge columns are the same.", "Pick two different columns."); }
+    var items = [];
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      try { J.asBool(r[h]); J.asBool(r[j]); }
+      catch (e) { $("out").hidden = true; return showError("Item " + (i + 1) + " has a value we can't read.", e.message + ". Use pass/fail, yes/no, true/false or 1/0."); }
+      items.push({ human: r[h], judge: r[j], group: g ? r[g] : null, judge_score: sc ? r[sc] : null,
+                   id: r.id != null ? r.id : r.item_id != null ? r.item_id : r.case_id != null ? r.case_id : "row " + (i + 2) });
+    }
+    var rep = J.calibrate(items, { minKappa: +$("rK").value, maxFalsePass: +$("rF").value, minN: +$("rN").value });
+    render(rep, items);
+  }
+
+  function stat(label, aside, value, viz, foot) {
+    return '<div class="stat"><div class="l">' + esc(label) + "<span>" + esc(aside) + '</span></div><div class="v num">' + esc(value) + "</div>" + viz + '<div class="f">' + esc(foot) + "</div></div>";
+  }
+  function fillBar(v) { return '<div class="track"><span class="fill" style="width:' + (clamp(v || 0) * 100).toFixed(2) + '%"></span></div>'; }
+  function interval(k, lo, hi) {
+    return '<div class="track" role="img" aria-label="kappa ' + k + ', 95% interval ' + lo + " to " + hi + '"><span class="rng" style="left:' + (clamp(lo) * 100) + "%;width:" + Math.max((clamp(hi) - clamp(lo)) * 100, 0.8) + '%"></span><span class="pt" style="left:' + clamp(k) * 100 + '%"></span></div>';
+  }
+  function shade(n, total) { var ramp = ["#f1f2f4", "#cde2fb", "#b7d3f6", "#9ec5f4", "#86b6ef"]; if (!n) return ramp[0]; return ramp[Math.min(4, Math.floor((n / total) * 8 + 0.999))]; }
+
+  function render(rep, items) {
+    var o = rep.overall, fit = rep.fit_to_gate, out = $("out"), ci = o.kappa_ci;
+    var reasons = rep.reasons.length ? rep.reasons : ["Every rule passed."];
+    var html = '<div class="panel verdict ' + (fit ? "pass" : "fail") + '"><div class="vi">' + (fit ? ICON.check : ICON.x).replace(/14/g, "20") + "</div><div>"
+      + '<div class="vt">' + (fit ? "Fit to gate releases" : "Not fit to gate releases") + "</div>"
+      + '<div class="vs">' + esc(o.n) + " labelled items from <b>" + esc(fileName) + "</b>. A judge may grade release-gating cases only if it agrees with people well beyond chance, rarely passes what a person failed, and isn't lenient on some kinds of case while harsh on others.</div>"
+      + '<ul class="vl">' + reasons.map(function (r) { return "<li><span class=\"" + (fit ? "i-good" : "i-bad") + "\">" + (fit ? ICON.check : ICON.x) + "</span><span>" + esc(r) + "</span></li>"; }).join("") + "</ul>"
+      + '<div class="vact"><button type="button" class="btn sm" id="copyMd">Copy summary for a pull request</button></div></div></div>';
+
+    var bias = o.bias || 0, lean = bias > 0 ? "lenient" : bias < 0 ? "harsh" : "neutral";
+    html += '<div class="panel stats">'
+      + stat("Cohen's kappa", o.kappa_band, o.kappa == null ? "n/a" : o.kappa.toFixed(2), ci ? interval(o.kappa || 0, ci[0], ci[1]) : "", ci ? "95% CI " + ci[0].toFixed(2) + " to " + ci[1].toFixed(2) : "needs 2 or more items")
+      + stat("Raw agreement", "", pct(o.agreement), fillBar(o.agreement), "same verdict as the person")
+      + stat("False-pass rate", "", pct(o.false_pass_rate), fillBar(o.false_pass_rate), "judge passed what a person failed")
+      + stat("Bias", lean, (bias >= 0 ? "+" : "") + bias.toFixed(2), "", rep.sign_reversal ? "the average hides a split by group" : "judge pass share minus human pass share")
+      + "</div>";
+
+    var cm = o.confusion, n = o.n;
+    var cell = function (c, t, x) { return '<div class="cmc ' + (x || "") + '" style="background:' + shade(c, n) + '"><b class="num">' + c + "</b><span>" + esc(t) + "</span></div>"; };
+    var matrix = '<div><div class="sh"><h2>Confusion matrix</h2><p>' + n + ' items</p></div><div class="panel"><div class="cm"><div></div><div class="h">Judge pass</div><div class="h">Judge fail</div>'
+      + '<div class="h rh">Human pass</div>' + cell(cm.tp, "agree: pass") + cell(cm.fn, "false fail")
+      + '<div class="h rh">Human fail</div>' + cell(cm.fp, "false pass: lets bad output through", "fp") + cell(cm.tn, "agree: fail")
+      + '</div><div class="legend"><span>Shade shows the share of items</span><span>Outlined: the costly error for a release gate</span></div></div></div>';
+
+    var gs = Object.keys(rep.groups), div;
+    if (gs.length) {
+      var span = Math.max.apply(null, [0.25].concat(gs.map(function (g) { return Math.abs(rep.groups[g].bias || 0); })));
+      div = '<div><div class="sh"><h2>Bias by group</h2><p>Judge pass share minus human pass share</p></div><div class="panel"><div class="div"><div class="dscale"><div></div><div><span>&#9664; harsh</span><span>lenient &#9654;</span></div><div></div></div>'
+        + gs.map(function (g) {
+          var b = rep.groups[g], v = b.bias || 0, w = Math.abs(v) / span * 50;
+          var pos = v > 0 ? "left:50%;width:" + w + "%" : "left:" + (50 - w) + "%;width:" + w + "%";
+          return '<div class="drow"><div class="mono" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(g) + '">' + esc(g) + ' <span style="color:var(--ink-3)">n=' + b.n + '</span></div><div class="dtrack" role="img" aria-label="' + esc(g) + " bias " + v + '"><span class="ax"></span>'
+            + (v ? '<span class="bar" style="' + pos + ";background:" + (v > 0 ? "#e34948" : "var(--accent)") + '"></span>' : "") + '</div><div class="num" style="text-align:right">' + (v >= 0 ? "+" : "") + v.toFixed(2) + "</div></div>";
+        }).join("")
+        + '</div><div class="legend"><span><i class="sw" style="background:var(--accent)"></i>harsh: fails what people pass</span><span><i class="sw" style="background:#e34948"></i>lenient: passes what people fail</span></div>'
+        + (rep.sign_reversal ? '<div class="note"><span class="i-bad">' + ICON.alert + "</span><span><b>Bias changes sign.</b> Lenient on " + esc(rep.lenient_groups.join(", ")) + ", harsh on " + esc(rep.harsh_groups.join(", ")) + ". One threshold can't fix both.</span></div>" : "")
+        + "</div></div>";
+    } else {
+      div = '<div><div class="sh"><h2>Bias by group</h2></div><div class="panel empty"><b>No group column chosen.</b>Pick a group column above to see whether the judge\'s bias changes across kinds of case.</div></div>';
+    }
+    html += '<div class="two">' + matrix + div + "</div>";
+
+    if (rep.threshold) {
+      var t = rep.threshold;
+      html += '<div class="blk"><div class="sh"><h2>Score threshold</h2><p>Chosen on one half of your labels, checked on the other</p></div><div class="panel stats">'
+        + stat("Best threshold", "", String(t.threshold), "", "a score at or above this passes")
+        + stat("Kappa, tuning half", "n=" + t.n_fit, t.kappa_fit_half == null ? "n/a" : t.kappa_fit_half.toFixed(2), "", "optimistic by construction")
+        + stat("Kappa, held-out half", "n=" + t.n_held_out, t.kappa_held_out_half == null ? "n/a" : t.kappa_held_out_half.toFixed(2), "", "the number to trust") + "</div></div>";
+    }
+
+    var dis = items.filter(function (it) { return J.asBool(it.human) !== J.asBool(it.judge); })
+      .sort(function (a, b) { return (J.asBool(b.judge) ? 1 : 0) - (J.asBool(a.judge) ? 1 : 0); });
+    html += '<div class="blk"><div class="sh"><h2>Disagreements</h2><p>' + dis.length + " items where the judge and the person differ, false passes first</p></div>";
+    if (!dis.length) html += '<div class="panel empty"><b>The judge agreed with the person on every item.</b></div></div>';
+    else {
+      var rowsHtml = dis.map(function (d, i) {
+        var hj = J.asBool(d.human), jj = J.asBool(d.judge);
+        return "<tr" + (i >= 12 ? ' class="x" hidden' : "") + '><td class="mono">' + esc(d.id) + '</td><td class="hs">' + esc(d.group || "") + '</td><td><span class="chipv ' + (hj ? "" : "f") + '">' + (hj ? "pass" : "fail") + '</span></td><td><span class="chipv ' + (jj ? "" : "f") + '">' + (jj ? "pass" : "fail") + '</span></td><td><span class="tag ' + (jj ? "fp" : "ff") + '">' + (jj ? "false pass" : "false fail") + "</span></td></tr>";
+      }).join("");
+      html += '<div class="panel" style="overflow:hidden"><table class="t"><tr><th>Item</th><th class="hs">Group</th><th>Person</th><th>Judge</th><th>Error</th></tr>' + rowsHtml + "</table>"
+        + (dis.length > 12 ? '<button type="button" class="more" id="moreDis">Show all ' + dis.length + "</button>" : "") + "</div></div>";
+    }
+    out.innerHTML = html; out.hidden = false;
+    var more = $("moreDis"); if (more) more.addEventListener("click", function () { [].forEach.call(out.querySelectorAll("tr.x"), function (r) { r.hidden = false; }); more.remove(); });
+    $("copyMd").addEventListener("click", function () {
+      var md = "**Judge check: " + (fit ? "fit" : "not fit") + " to gate releases** (" + o.n + " labelled items)\n\n"
+        + "- Kappa " + (o.kappa == null ? "n/a" : o.kappa.toFixed(2)) + (ci ? " (95% CI " + ci[0].toFixed(2) + " to " + ci[1].toFixed(2) + ", " + o.kappa_band + ")" : "") + "\n"
+        + "- False-pass rate " + pct(o.false_pass_rate) + ", false-fail rate " + pct(o.false_fail_rate) + "\n"
+        + "- Bias " + (bias >= 0 ? "+" : "") + bias.toFixed(2) + (rep.sign_reversal ? "; lenient on " + rep.lenient_groups.join(", ") + ", harsh on " + rep.harsh_groups.join(", ") : "") + "\n"
+        + rep.reasons.map(function (r) { return "- Fails: " + r; }).join("\n") + "\n\nChecked with holdline (https://www.aashanjaved.com/holdline/judge/)";
+      (navigator.clipboard ? navigator.clipboard.writeText(md) : Promise.reject()).then(function () { toast("Summary copied"); }, function () { toast("Copy isn't available in this browser"); });
+    });
+    if (out.getBoundingClientRect().top > window.innerHeight * 0.7) out.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  var drop = $("drop");
+  ["dragenter", "dragover"].forEach(function (e) { drop.addEventListener(e, function (ev) { ev.preventDefault(); drop.classList.add("over"); }); });
+  ["dragleave", "drop"].forEach(function (e) { drop.addEventListener(e, function (ev) { ev.preventDefault(); drop.classList.remove("over"); }); });
+  drop.addEventListener("drop", function (ev) { var f = ev.dataTransfer.files[0]; if (f) readFile(f); });
+  $("file").addEventListener("change", function () { if (this.files[0]) readFile(this.files[0]); this.value = ""; });
+  function readFile(f) {
+    if (f.size > 20 * 1024 * 1024) return showError("That file is over 20 MB.", "Split it, or check it with holdline calibrate on the command line.");
+    var r = new FileReader(); r.onload = function () { load(String(r.result), f.name); }; r.onerror = function () { showError("We couldn't open that file.", "Try saving it again as CSV or JSON lines."); }; r.readAsText(f);
+  }
+  $("pasteBtn").addEventListener("click", function () { var p = $("paste"); p.hidden = !p.hidden; if (!p.hidden) p.focus(); });
+  var pt; $("paste").addEventListener("input", function () { clearTimeout(pt); var v = this.value; pt = setTimeout(function () { if (v.trim()) load(v, "pasted data"); }, 400); });
+  $("sample").addEventListener("click", function () { load($("sampleData").textContent, "synthetic sample (made-up data)"); });
+  ["cHuman", "cJudge", "cGroup", "cScore", "rK", "rF", "rN"].forEach(function (id) { $(id).addEventListener("change", run); });
+  $("clear").addEventListener("click", function () { rows = []; $("cols").hidden = true; $("out").hidden = true; $("paste").value = ""; hideError(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+})();
+</script>
+</body>
+</html>

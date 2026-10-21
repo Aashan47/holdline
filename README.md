@@ -15,6 +15,19 @@ pip install holdline
 
 [![A holdline report: gate passed, pass rate with its interval, pass^3, a case map and the cases that need attention](https://raw.githubusercontent.com/Aashan47/holdline/main/site/img/report-overview.png)](https://www.aashanjaved.com/holdline/demo/helpdesk-gate.html)
 
+## Start with what you already have
+
+**Already have eval results?** Gate them without rewriting anything. Any tool's output works: a CSV,
+JSON or JSONL with a case id and a pass/fail (or score) column, one row per case and run.
+
+```bash
+holdline compare before.csv after.csv --html report.html   # exits 1 on a real regression
+```
+
+**Grading with an LLM judge?** Drop a file of human and judge verdicts into the
+[judge check](https://www.aashanjaved.com/holdline/judge/), which runs in your browser, or run
+`holdline calibrate --labels labels.jsonl --strict` in CI.
+
 ## Why
 
 Agent changes get shipped on vibes. A prompt tweak looks better on five examples, merges, and

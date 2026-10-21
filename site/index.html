@@ -145,7 +145,7 @@ section.s{padding-top:80px}.s h2{font-size:30px}
 <header>
   <div class="wrap">
     <a class="logo" href="#top" aria-label="holdline home"><svg width="24" height="24" viewBox="0 0 22 22" aria-hidden="true"><rect width="22" height="22" rx="6" fill="#14161b"/><path d="M5 13.5h12" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="13.5" r="3" fill="#14161b" stroke="#fff" stroke-width="2"/><path d="M5 8h4" stroke="#fff" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/></svg>holdline</a>
-    <nav aria-label="Sections"><a href="#how">How it works</a><a href="#results">Results</a><a href="#judge">Judge calibration</a><a href="#ci">CI</a></nav>
+    <nav aria-label="Sections"><a href="judge/">Judge check</a><a href="#start">Start</a><a href="#how">How it works</a><a href="#results">Results</a><a href="#ci">CI</a></nav>
     <div class="sp"></div>
     <a class="btn ghost sm" href="https://github.com/Aashan47/holdline">GitHub</a>
   </div>
@@ -156,7 +156,8 @@ section.s{padding-top:80px}.s h2{font-size:30px}
     <h1>Know if your agent got worse before you merge.</h1>
     <p class="lede">holdline runs your agent's eval cases several times, checks what it did as well as what it said, measures your LLM judge against people, and fails the pull request when a change makes the agent measurably worse.</p>
     <div class="cta">
-      <a class="btn" href="demo/helpdesk-gate.html">Open a live report</a>
+      <a class="btn" href="judge/">Check your LLM judge</a>
+      <a class="btn ghost" href="demo/helpdesk-gate.html">Open a live report</a>
       <div class="install"><code id="cmd">pip install holdline</code><button type="button" id="copy">Copy</button></div>
     </div>
     <div class="holdline" aria-hidden="true"><i></i></div>
@@ -179,6 +180,24 @@ section.s{padding-top:80px}.s h2{font-size:30px}
         <div class="fix"><h3>Calibrate it against people first</h3><p>Agreement beyond chance, false passes, and bias per group. A judge that is not fit is not allowed to grade.</p></div></div>
       <div class="pair"><div><h3>"82% to 79%" might be noise</h3><p>Two pass rates side by side cannot tell a regression from a bad day.</p></div>
         <div class="fix"><h3>Compare the same cases, with statistics</h3><p>Cases are paired before and after. An exact McNemar test on the ones that flipped, an interval on the change, and must-pass cases that never get a pass on statistics.</p></div></div>
+    </div>
+  </section>
+
+  <section class="s wrap" id="start">
+    <h2>Start with what you already have.</h2>
+    <p class="intro">No new framework and no rewrite. Two ways in, each a minute or less.</p>
+    <div class="code">
+      <figure><figcaption>Already have eval results from another tool?</figcaption><pre><span class="c"># CSV, JSON or JSONL: a case id and pass/fail (or a score)</span>
+pip install holdline
+holdline compare before.csv after.csv --html report.html
+<span class="c"># paired statistics on the same cases, the cases that broke,</span>
+<span class="c"># pass^k when you have repeats; exits 1 on a real regression</span></pre></figure>
+      <figure><figcaption>Grading with an LLM judge?</figcaption><pre><span class="c"># drop human and judge verdicts into the judge check</span>
+<span class="c"># kappa, false passes, bias by group, in your browser</span>
+<a href="judge/" style="color:var(--accent);font-weight:500">aashanjaved.com/holdline/judge</a>
+
+<span class="c"># or in CI</span>
+holdline calibrate --labels labels.jsonl --strict</pre></figure>
     </div>
   </section>
 
