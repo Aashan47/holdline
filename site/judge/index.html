@@ -440,7 +440,11 @@ holdline calibrate --labels labels.jsonl --strict</pre></div>
         + "- False-pass rate " + pct(o.false_pass_rate) + ", false-fail rate " + pct(o.false_fail_rate) + "\n"
         + "- Bias " + (bias >= 0 ? "+" : "") + bias.toFixed(2) + (rep.sign_reversal ? "; lenient on " + rep.lenient_groups.join(", ") + ", harsh on " + rep.harsh_groups.join(", ") : "") + "\n"
         + rep.reasons.map(function (r) { return "- Fails: " + r; }).join("\n") + "\n\nChecked with holdline (https://www.aashanjaved.com/holdline/judge/)";
-      (navigator.clipboard ? navigator.clipboard.writeText(md) : Promise.reject()).then(function () { toast("Summary copied"); }, function () { toast("Copy isn't available in this browser"); });
+      var btn = this;
+      (navigator.clipboard ? navigator.clipboard.writeText(md) : Promise.reject()).then(function () {
+        btn.textContent = "Copied to clipboard"; toast("Summary copied");
+        setTimeout(function () { btn.textContent = "Copy summary for a pull request"; }, 4000);
+      }, function () { toast("Copy isn't available in this browser"); });
     });
     if (out.getBoundingClientRect().top > window.innerHeight * 0.7) out.scrollIntoView({ behavior: "smooth", block: "start" });
   }
