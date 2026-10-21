@@ -21,3 +21,37 @@ jobs:
         run: |
           holdline run --suite refund_cases.jsonl --target refund_agent:agent_v1 -k 3 --out /tmp/v1.json -q
           holdline gate --baseline /tmp/v1.json --candidate /tmp/v1.json
+
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: baseline run of the good agent
+        run: |
+          pip install --quiet .
+          cd examples
+          holdline run --suite refund_cases.jsonl --target refund_agent:agent_v1 -k 2 --out "$RUNNER_TEMP/base.json" -q
+      - id: good
+        uses: ./
+        with:
+          suite: refund_cases.jsonl
+          target: refund_agent:agent_v1
+          baseline: ${{ runner.temp }}/base.json
+          repeats: "2"
+          working-directory: examples
+      - id: bad
+        uses: ./
+        continue-on-error: true
+        with:
+          suite: refund_cases.jsonl
+          target: refund_agent:agent_v2
+          baseline: ${{ runner.temp }}/base.json
+          repeats: "2"
+          working-directory: examples
+      - name: the gate passes v1 and fails v2
+        run: |
+          test "${{ steps.good.outputs.verdict }}" = PASS
+          test "${{ steps.bad.outputs.verdict }}" = FAIL

@@ -1,0 +1,104 @@
+name: holdline gate
+description: Run an agent over an eval suite and fail the job if it is measurably worse than the baseline.
+branding:
+  icon: shield
+  color: green
+
+inputs:
+  suite:
+    description: Path to the cases file (.json, .jsonl, .yaml)
+    required: true
+  target:
+    description: "module:function that takes a case input and returns the agent's output"
+    required: true
+  baseline:
+    description: Path to a saved baseline run JSON (for example one committed at .holdline/baseline.json). Empty = absolute rules only.
+    required: false
+    default: ""
+  repeats:
+    description: Runs per case (pass^k uses this k)
+    required: false
+    default: "1"
+  workers:
+    description: Parallel runs
+    required: false
+    default: "4"
+  judge:
+    description: "module:function judge for cases with a rubric"
+    required: false
+    default: ""
+  gate-config:
+    description: JSON file of gate options (alpha, max_drop, min_pass_rate, min_withheld, ...)
+    required: false
+    default: ""
+  max-drop:
+    description: Fail if the paired pass rate drops by more than this (0.05 = 5 points)
+    required: false
+    default: ""
+  min-pass-rate:
+    description: Fail if the candidate pass rate is below this
+    required: false
+    default: ""
+  working-directory:
+    description: Directory to run in (the target must be importable from here)
+    required: false
+    default: "."
+
+outputs:
+  verdict:
+    description: PASS or FAIL
+    value: ${{ steps.gate.outputs.verdict }}
+  run:
+    description: Path of the candidate run JSON
+    value: ${{ steps.run.outputs.run }}
+  report:
+    description: Path of the HTML report
+    value: ${{ steps.gate.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install holdline
+      shell: bash
+      run: python -m pip install --quiet "${{ github.action_path }}"
+
+    - name: Run the suite
+      id: run
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        HL_SUITE: ${{ inputs.suite }}
+        HL_TARGET: ${{ inputs.target }}
+        HL_REPEATS: ${{ inputs.repeats }}
+        HL_WORKERS: ${{ inputs.workers }}
+        HL_JUDGE: ${{ inputs.judge }}
+      run: |
+        out="holdline-runs/candidate-${GITHUB_SHA::7}.json"
+        args=(run --suite "$HL_SUITE" --target "$HL_TARGET" -k "$HL_REPEATS" --workers "$HL_WORKERS" --label "${GITHUB_SHA::7}" --out "$out" -q)
+        if [ -n "$HL_JUDGE" ]; then args+=(--judge "$HL_JUDGE"); fi
+        holdline "${args[@]}"
+        echo "run=$out" >> "$GITHUB_OUTPUT"
+
+    - name: Gate
+      id: gate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        HL_RUN: ${{ steps.run.outputs.run }}
+        HL_BASELINE: ${{ inputs.baseline }}
+        HL_CONFIG: ${{ inputs.gate-config }}
+        HL_MAX_DROP: ${{ inputs.max-drop }}
+        HL_MIN_PASS: ${{ inputs.min-pass-rate }}
+      run: |
+        args=(gate --candidate "$HL_RUN" --html holdline-report.html --markdown holdline-gate.md)
+        if [ -n "$HL_BASELINE" ]; then args+=(--baseline "$HL_BASELINE"); fi
+        if [ -n "$HL_CONFIG" ]; then args+=(--config "$HL_CONFIG"); fi
+        if [ -n "$HL_MAX_DROP" ]; then args+=(--max-drop "$HL_MAX_DROP"); fi
+        if [ -n "$HL_MIN_PASS" ]; then args+=(--min-pass-rate "$HL_MIN_PASS"); fi
+        set +e
+        holdline "${args[@]}" > /dev/null
+        code=$?
+        set -e
+        echo "report=holdline-report.html" >> "$GITHUB_OUTPUT"
+        if [ "$code" = "0" ]; then echo "verdict=PASS" >> "$GITHUB_OUTPUT"; else echo "verdict=FAIL" >> "$GITHUB_OUTPUT"; fi
+        exit $code
