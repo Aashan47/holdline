@@ -11,9 +11,9 @@ Zero runtime dependencies. Python 3.9+. Works with any agent you can call from P
 pip install git+https://github.com/Aashan47/holdline@v0.1.0
 ```
 
-**[Website and live reports](https://aashan47.github.io/holdline/)** · [a real report](https://aashan47.github.io/holdline/demo/helpdesk-gate.html) from the helpdesk-agent run below
+**[Website and live reports](https://www.aashanjaved.com/holdline/)** · [a real report](https://www.aashanjaved.com/holdline/demo/helpdesk-gate.html) from the helpdesk-agent run below
 
-[![A holdline report: gate passed, pass rate with its interval, pass^3, a case map and the cases that need attention](site/img/report-overview.png)](https://aashan47.github.io/holdline/demo/helpdesk-gate.html)
+[![A holdline report: gate passed, pass rate with its interval, pass^3, a case map and the cases that need attention](site/img/report-overview.png)](https://www.aashanjaved.com/holdline/demo/helpdesk-gate.html)
 
 ## Why
 
