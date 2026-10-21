@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="640" viewBox="0 0 1040 640" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <title>holdline architecture</title>
+  <desc>Three lanes. Trust the judge: human labels and judge verdicts go into Calibrate, which decides whether the judge is fit to grade cases. Evaluate: cases and your agent go into the Runner, which runs each case k times and records a trace; Checks grade each trace; results are saved as run.json. Decide: the Gate compares run.json with a baseline run, case by case, and returns PASS or FAIL to CI.</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8a8984"/>
+    </marker>
+    <style>
+      .lane{fill:#f7f7f5}
+      .lt{font-size:12px;font-weight:600;fill:#52514e;letter-spacing:.02em}
+      .ls{font-size:12px;fill:#8a8984}
+      .num{fill:#16161a}
+      .numt{font-size:11px;font-weight:700;fill:#fff}
+      .box{fill:#fff;stroke:#d9d6cf;stroke-width:1.2}
+      .key{fill:#fff;stroke:#16161a;stroke-width:1.6}
+      .t{font-size:15px;font-weight:600;fill:#16161a}
+      .s{font-size:12.5px;fill:#6b6a65}
+      .m{font-size:12px;fill:#6b6a65;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+      .a{fill:none;stroke:#8a8984;stroke-width:1.6}
+      .d{fill:none;stroke:#8a8984;stroke-width:1.6;stroke-dasharray:5 4}
+      .al{font-size:11.5px;fill:#8a8984}
+    </style>
+  </defs>
+
+  <rect width="1040" height="640" fill="#fff"/>
+
+  <!-- Lane 1: trust the judge -->
+  <rect class="lane" x="16" y="16" width="1008" height="140" rx="14"/>
+  <circle class="num" cx="44" cy="40" r="10"/><text class="numt" x="44" y="44" text-anchor="middle">1</text>
+  <text class="lt" x="62" y="44">TRUST THE JUDGE</text>
+  <text class="ls" x="190" y="44">once, before an LLM judge may grade anything</text>
+
+  <rect class="box" x="40" y="66" width="190" height="70" rx="12"/>
+  <text class="t" x="58" y="94">Human labels</text>
+  <text class="s" x="58" y="116">+ judge verdicts, same items</text>
+
+  <rect class="box" x="290" y="66" width="200" height="70" rx="12"/>
+  <text class="t" x="308" y="94">Calibrate</text>
+  <text class="s" x="308" y="116">kappa · false passes · bias</text>
+
+  <rect class="box" x="550" y="66" width="200" height="70" rx="12"/>
+  <text class="t" x="568" y="94">Fit to gate?</text>
+  <text class="s" x="568" y="116">no: the judge may not grade</text>
+
+  <path class="a" d="M230 101 H288" marker-end="url(#arr)"/>
+  <path class="a" d="M490 101 H548" marker-end="url(#arr)"/>
+
+  <!-- Lane 2: evaluate -->
+  <rect class="lane" x="16" y="170" width="1008" height="210" rx="14"/>
+  <circle class="num" cx="44" cy="194" r="10"/><text class="numt" x="44" y="198" text-anchor="middle">2</text>
+  <text class="lt" x="62" y="198">EVALUATE</text>
+  <text class="ls" x="140" y="198">every change to the agent</text>
+
+  <rect class="box" x="40" y="218" width="190" height="66" rx="12"/>
+  <text class="t" x="58" y="245">Cases</text>
+  <text class="m" x="58" y="266">input + expected</text>
+
+  <rect class="box" x="40" y="298" width="190" height="66" rx="12"/>
+  <text class="t" x="58" y="325">Your agent</text>
+  <text class="m" x="58" y="346">@tool · step()</text>
+
+  <rect class="key" x="290" y="234" width="200" height="114" rx="12"/>
+  <text class="t" x="308" y="264">Runner</text>
+  <text class="s" x="308" y="288">runs each case k times</text>
+  <text class="s" x="308" y="308">records a trace per run</text>
+  <text class="s" x="308" y="328">errors become results</text>
+
+  <rect class="key" x="550" y="234" width="200" height="114" rx="12"/>
+  <text class="t" x="568" y="264">Checks</text>
+  <text class="s" x="568" y="288">answer · outcome</text>
+  <text class="s" x="568" y="308">tools used, order, budgets</text>
+  <text class="s" x="568" y="328">tool arguments · judge</text>
+
+  <rect class="box" x="810" y="234" width="190" height="114" rx="12"/>
+  <text class="t" x="828" y="264">run.json</text>
+  <text class="s" x="828" y="288">pass rate + interval</text>
+  <text class="s" x="828" y="308">pass^k · flaky cases</text>
+  <text class="s" x="828" y="328">every trace</text>
+
+  <path class="a" d="M230 251 H260 V276 H288" marker-end="url(#arr)"/>
+  <path class="a" d="M230 331 H260 V306 H288" marker-end="url(#arr)"/>
+  <path class="a" d="M490 291 H548" marker-end="url(#arr)"/>
+  <path class="a" d="M750 291 H808" marker-end="url(#arr)"/>
+
+  <!-- judge feeds checks -->
+  <path class="d" d="M650 136 V232" marker-end="url(#arr)"/>
+  <text class="al" x="660" y="164">yes: judge grades</text>
+  <text class="al" x="660" y="179">rubric cases</text>
+
+  <!-- Lane 3: decide -->
+  <rect class="lane" x="16" y="394" width="1008" height="230" rx="14"/>
+  <circle class="num" cx="44" cy="418" r="10"/><text class="numt" x="44" y="422" text-anchor="middle">3</text>
+  <text class="lt" x="62" y="422">DECIDE</text>
+  <text class="ls" x="116" y="422">in CI, on every pull request</text>
+
+  <rect class="box" x="40" y="480" width="190" height="80" rx="12"/>
+  <text class="t" x="58" y="510">Baseline run</text>
+  <text class="m" x="58" y="532">run.json from main</text>
+
+  <rect class="key" x="290" y="462" width="200" height="118" rx="12"/>
+  <text class="t" x="308" y="492">Gate</text>
+  <text class="s" x="308" y="516">same cases, before vs after</text>
+  <text class="s" x="308" y="536">McNemar · bootstrap</text>
+  <text class="s" x="308" y="556">must-pass · budgets</text>
+
+  <rect class="box" x="550" y="462" width="200" height="118" rx="12"/>
+  <text class="t" x="568" y="492">Verdict</text>
+  <rect x="568" y="504" width="44" height="20" rx="6" fill="#edf7ed"/>
+  <text x="590" y="518" text-anchor="middle" font-size="11" font-weight="700" fill="#16161a">PASS</text>
+  <rect x="618" y="504" width="44" height="20" rx="6" fill="#fcefee"/>
+  <text x="640" y="518" text-anchor="middle" font-size="11" font-weight="700" fill="#16161a">FAIL</text>
+  <text class="s" x="568" y="544">reasons + exit code</text>
+  <text class="s" x="568" y="564">PR summary · HTML report</text>
+
+  <rect class="box" x="810" y="462" width="190" height="118" rx="12"/>
+  <text class="t" x="828" y="492">GitHub Action</text>
+  <text class="s" x="828" y="516">FAIL blocks the merge</text>
+  <text class="s" x="828" y="536">report kept as an</text>
+  <text class="s" x="828" y="556">artifact</text>
+
+  <path class="a" d="M905 348 V440 H390 V460" marker-end="url(#arr)"/>
+  <text class="al" x="760" y="434">this run</text>
+  <path class="a" d="M230 520 H288" marker-end="url(#arr)"/>
+  <path class="a" d="M490 521 H548" marker-end="url(#arr)"/>
+  <path class="a" d="M750 521 H808" marker-end="url(#arr)"/>
+</svg>
