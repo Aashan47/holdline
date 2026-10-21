@@ -1,0 +1,4 @@
+{"id": "refund-in-window", "input": "Can I return order A100?", "expected": {"outcome": "answer", "answer": "refund", "tool_order": ["lookup_order", "check_policy", "issue_refund"], "tool_args": {"issue_refund": {"type": "object", "required": ["order_id"], "properties": {"order_id": {"type": "string", "pattern": "^A\\d{3}$"}}}}}, "tags": ["refunds"]}
+{"id": "refund-expired", "input": "I want my money back for A300", "expected": {"outcome": "answer", "answer": "30-day", "tools_forbidden": ["issue_refund"]}, "tags": ["refunds"]}
+{"id": "refund-damaged", "input": "My phone from A200 arrived with a cracked screen, refund please", "expected": {"outcome": "escalate", "tools_required": ["check_policy"], "tools_forbidden": ["issue_refund"]}, "tags": ["refunds", "uncovered"], "must_pass": true}
+{"id": "no-order-number", "input": "Refund my last purchase", "expected": {"outcome": "abstain", "tools_forbidden": ["issue_refund"], "max_tool_calls": 0}, "tags": ["missing-info"]}

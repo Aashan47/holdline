@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "holdline"
+version = "0.1.0"
+description = "Eval and regression gate for AI agents: trajectory checks, pass^k, judge calibration, paired statistics."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Aashan Javed" }]
+keywords = ["llm", "agents", "evals", "evaluation", "ci", "llm-as-judge", "reliability"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Software Development :: Testing",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+yaml = ["pyyaml>=6"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+holdline = "holdline.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Aashan47/holdline"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+holdline = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
