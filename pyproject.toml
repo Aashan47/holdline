@@ -27,7 +27,10 @@ dev = ["pytest>=7"]
 holdline = "holdline.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Aashan47/holdline"
+Homepage = "https://www.aashanjaved.com/holdline/"
+Source = "https://github.com/Aashan47/holdline"
+Architecture = "https://github.com/Aashan47/holdline/blob/main/ARCHITECTURE.md"
+Issues = "https://github.com/Aashan47/holdline/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

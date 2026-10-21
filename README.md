@@ -8,12 +8,12 @@ trusting it, and fails the pull request when a change makes the agent measurably
 Zero runtime dependencies. Python 3.9+. Works with any agent you can call from Python.
 
 ```bash
-pip install git+https://github.com/Aashan47/holdline@v0.1.0
+pip install holdline
 ```
 
 **[Website and live reports](https://www.aashanjaved.com/holdline/)** · [a real report](https://www.aashanjaved.com/holdline/demo/helpdesk-gate.html) from the helpdesk-agent run below
 
-[![A holdline report: gate passed, pass rate with its interval, pass^3, a case map and the cases that need attention](site/img/report-overview.png)](https://www.aashanjaved.com/holdline/demo/helpdesk-gate.html)
+[![A holdline report: gate passed, pass rate with its interval, pass^3, a case map and the cases that need attention](https://raw.githubusercontent.com/Aashan47/holdline/main/site/img/report-overview.png)](https://www.aashanjaved.com/holdline/demo/helpdesk-gate.html)
 
 ## Why
 
@@ -163,7 +163,7 @@ Raw runs, traces and the gate report are in [`examples/helpdesk/results/`](examp
 
 ## How it works
 
-![holdline architecture](docs/architecture.svg)
+![holdline architecture](https://raw.githubusercontent.com/Aashan47/holdline/main/docs/architecture.svg)
 
 [ARCHITECTURE.md](ARCHITECTURE.md) explains each part; [DECISIONS.md](DECISIONS.md) records every
 design decision and the alternatives considered.
