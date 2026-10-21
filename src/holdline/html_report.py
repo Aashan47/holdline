@@ -91,7 +91,7 @@ h2{font-size:15px;margin:0;font-weight:620;letter-spacing:-.005em}
 .i-bad{color:var(--bad)}.i-warn{color:#c98500}.i-good{color:var(--good)}
 
 /* stat bar */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:16px;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));margin-top:16px;overflow:hidden}
 .stat{padding:16px 18px;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);margin:0 -1px -1px 0;
 display:flex;flex-direction:column;gap:5px;min-height:116px}
 .stat .l{font-size:12.5px;color:var(--ink-2)}
