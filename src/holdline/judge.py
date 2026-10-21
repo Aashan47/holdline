@@ -170,8 +170,8 @@ def calibrate(items: list, *, min_kappa: float = 0.6, max_false_pass: float = 0.
         reasons.append(f"false-pass rate {o['false_pass_rate']} > {max_false_pass} "
                        "(judge passes outputs humans fail)")
     if report["sign_reversal"]:
-        reasons.append(f"bias changes sign across groups: lenient on {report['lenient_groups']}, "
-                       f"harsh on {report['harsh_groups']}")
+        reasons.append(f"bias changes sign across groups: lenient on {', '.join(report['lenient_groups'])}, "
+                       f"harsh on {', '.join(report['harsh_groups'])}")
     report["fit_to_gate"] = not reasons
     report["reasons"] = reasons
     report["thresholds"] = {"min_kappa": min_kappa, "max_false_pass": max_false_pass,

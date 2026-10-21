@@ -74,7 +74,7 @@ def gate(candidate: Run, baseline: Optional[Run] = None,
     res = GateResult(passed=True)
 
     if cfg.enforce_must_pass and cs["must_pass_failed"]:
-        res.reasons.append(f"must-pass cases failed: {cs['must_pass_failed']}")
+        res.reasons.append(f"must-pass cases failed: {', '.join(cs['must_pass_failed'])}")
     if cfg.min_pass_rate is not None and cs["pass_rate"] < cfg.min_pass_rate:
         res.reasons.append(f"pass rate {cs['pass_rate']:.3f} < required {cfg.min_pass_rate}")
     if cfg.min_withheld is not None and cs["withheld_when_should"] is not None \
@@ -121,7 +121,7 @@ def gate(candidate: Run, baseline: Optional[Run] = None,
             res.warnings.append(f"runs with errors rose from {bs['errors']} to {cs['errors']}")
         new_flaky = sorted(set(cs["flaky_cases"]) - set(bs["flaky_cases"]))
         if new_flaky:
-            res.warnings.append(f"newly flaky cases: {new_flaky}")
+            res.warnings.append(f"newly flaky cases: {', '.join(new_flaky)}")
 
         k = cs["repeats"]
         rows = [("pass rate", bs["pass_rate"], cs["pass_rate"]),

@@ -222,6 +222,10 @@ def tool_arguments(step_input: Any) -> Any:
     return step_input
 
 
+def _names(xs, sep: str = ", ") -> str:
+    return sep.join(str(x) for x in xs)
+
+
 # -- the evaluator -----------------------------------------------------------------------
 def evaluate(case: Case, trace: Trace, judge: Optional[Callable] = None) -> list:
     """Run every check that ``case.expected`` asks for against one trace."""
@@ -246,18 +250,18 @@ def evaluate(case: Case, trace: Trace, judge: Optional[Callable] = None) -> list
         missing = [t for t in exp["tools_required"] if t not in tools]
         results.append(CheckResult("tools_required", not missing,
                                    1 - len(missing) / max(1, len(exp["tools_required"])),
-                                   f"never called {missing}" if missing else ""))
+                                   f"never called {_names(missing)}" if missing else ""))
 
     if "tools_forbidden" in exp:
         used = sorted({t for t in tools if t in exp["tools_forbidden"]})
         results.append(CheckResult("tools_forbidden", not used, float(not used),
-                                   f"called forbidden {used}" if used else ""))
+                                   f"called forbidden {_names(used)}" if used else ""))
 
     if "tool_order" in exp:
         want, it = exp["tool_order"], iter(tools)
         ok = all(any(t == w for t in it) for w in want)  # subsequence test
         results.append(CheckResult("tool_order", ok, float(ok),
-                                   "" if ok else f"wanted order {want}, got {tools}"))
+                                   "" if ok else f"wanted order {_names(want, ' > ')}, got {_names(tools, ' > ') or 'no tools'}"))
 
     if "max_steps" in exp:
         n = len(trace.steps)
@@ -277,7 +281,7 @@ def evaluate(case: Case, trace: Trace, judge: Optional[Callable] = None) -> list
                         for s in trace.tool_calls())
         loops = sorted({name for (name, _), n in calls.items() if n > limit})
         results.append(CheckResult("no_loops", not loops, float(not loops),
-                                   f"identical calls repeated >{limit}x: {loops}" if loops else ""))
+                                   f"identical calls repeated >{limit}x: {_names(loops)}" if loops else ""))
 
     if "tool_args" in exp:
         errs = []
