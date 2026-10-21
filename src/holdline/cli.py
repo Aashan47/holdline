@@ -1,4 +1,4 @@
-"""Command line: ``holdline run | gate | calibrate | report | show``.
+"""Command line: ``holdline run | gate | compare | calibrate | report | show``.
 
 Exit codes: 0 ok, 1 gate failed (or judge not fit with ``--strict``), 2 usage or input error.
 """
@@ -15,6 +15,7 @@ from typing import Callable, Optional
 
 from . import judge as judge_mod
 from . import report, suite
+from .importers import ResultsError, load_results
 from .gate import GateConfig, gate
 from .runner import Run, run
 
@@ -111,6 +112,19 @@ def cmd_gate(a) -> int:
     return 0 if res.passed else 1
 
 
+def cmd_compare(a) -> int:
+    opts = dict(id_col=a.id_col, pass_col=a.pass_col, repeat_col=a.repeat_col, threshold=a.threshold)
+    base = load_results(a.baseline, label=a.baseline_label, **opts)
+    cand = load_results(a.candidate, label=a.candidate_label, **opts)
+    res = gate(cand, base, _gate_config(a))
+    md = report.gate_markdown(res, cand, base)
+    print(json.dumps(res.to_dict(), indent=1) if a.json else md)
+    _write(a.markdown, md)
+    _write(a.html, report.run_html(cand, res, base) if a.html else "")
+    _step_summary(md)
+    return 0 if res.passed else 1
+
+
 def cmd_calibrate(a) -> int:
     items = judge_mod.load_labels(a.labels)
     rep = judge_mod.calibrate(items, min_kappa=a.min_kappa, max_false_pass=a.max_false_pass,
@@ -133,6 +147,19 @@ def cmd_report(a) -> int:
 def cmd_show(a) -> int:
     print(report.text_summary(Run.load(a.run)))
     return 0
+
+
+def _gate_args(g) -> None:
+    g.add_argument("--config", help="JSON file of gate options")
+    g.add_argument("--alpha", type=float)
+    g.add_argument("--max-drop", dest="max_drop", type=float)
+    g.add_argument("--min-pass-rate", dest="min_pass_rate", type=float)
+    g.add_argument("--min-withheld", dest="min_withheld", type=float)
+    g.add_argument("--max-latency-increase", dest="max_latency_increase", type=float)
+    g.add_argument("--max-cost-increase", dest="max_cost_increase", type=float)
+    g.add_argument("--markdown", help="write the Markdown summary here")
+    g.add_argument("--html", help="write an HTML report here")
+    g.add_argument("--json", action="store_true")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -158,17 +185,20 @@ def build_parser() -> argparse.ArgumentParser:
     g = sub.add_parser("gate", help="fail if the candidate is measurably worse")
     g.add_argument("--candidate", required=True)
     g.add_argument("--baseline")
-    g.add_argument("--config", help="JSON file of gate options")
-    g.add_argument("--alpha", type=float)
-    g.add_argument("--max-drop", dest="max_drop", type=float)
-    g.add_argument("--min-pass-rate", dest="min_pass_rate", type=float)
-    g.add_argument("--min-withheld", dest="min_withheld", type=float)
-    g.add_argument("--max-latency-increase", dest="max_latency_increase", type=float)
-    g.add_argument("--max-cost-increase", dest="max_cost_increase", type=float)
-    g.add_argument("--markdown", help="write the Markdown summary here")
-    g.add_argument("--html", help="write an HTML report here")
-    g.add_argument("--json", action="store_true")
+    _gate_args(g)
     g.set_defaults(fn=cmd_gate)
+
+    cp = sub.add_parser("compare", help="gate two result files from any eval tool (CSV, JSON, JSONL)")
+    cp.add_argument("baseline", help="results before the change")
+    cp.add_argument("candidate", help="results after the change")
+    cp.add_argument("--id-col", dest="id_col", help="column naming the case (default: guessed)")
+    cp.add_argument("--pass-col", dest="pass_col", help="column with pass/fail or a score (default: guessed)")
+    cp.add_argument("--repeat-col", dest="repeat_col", help="column numbering repeats of a case")
+    cp.add_argument("--threshold", type=float, default=0.5, help="a score at or above this passes")
+    cp.add_argument("--baseline-label", dest="baseline_label")
+    cp.add_argument("--candidate-label", dest="candidate_label")
+    _gate_args(cp)
+    cp.set_defaults(fn=cmd_compare)
 
     c = sub.add_parser("calibrate", help="measure an LLM judge against human labels")
     c.add_argument("--labels", required=True, help="JSONL of {id, human, judge, group?, judge_score?}")
@@ -198,7 +228,7 @@ def main(argv: Optional[list] = None) -> int:
     a = build_parser().parse_args(argv)
     try:
         return a.fn(a)
-    except (suite.SuiteError, FileNotFoundError, ValueError) as exc:
+    except (suite.SuiteError, ResultsError, FileNotFoundError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 

@@ -590,6 +590,7 @@ def _detail(case, rs, regressed: bool, fixed: bool) -> str:
         tags += "<span class='flag broke'>broke vs baseline</span>"
     if fixed:
         tags += "<span class='flag fixed'>fixed vs baseline</span>"
+    imported = bool(case.meta.get("imported"))
     groups: dict = {}
     for r in rs:
         key = (r.passed, tuple((c.check, c.detail) for c in r.failed_checks), tuple(r.trace.tool_names()))
@@ -606,6 +607,14 @@ def _detail(case, rs, regressed: bool, fixed: bool) -> str:
             + (f" <span class='d'>{_e(c.detail)}</span>" if c.detail else "") + "</span></div>"
             for c in r.failed_checks)
         ok = "".join(f"<span><span class='i-good'>{_icon('check', 12)}</span>{_e(c.check)}</span>" for c in r.checks if c.passed)
+        if imported:
+            nums_txt = ", ".join(map(str, nums))
+            blocks.append(f"<div class='rg'><div class='rgh'>{icon}{_e(which)} {'passed' if passed else 'failed'}"
+                          f"<span class='m num'>row{'s' if len(grp) > 1 else ''} {nums_txt}</span></div>"
+                          + (f"<div class='checks'>{failed}</div>" if failed else "")
+                          + f"<div class='outbox' style='padding-top:12px'><div class='box'><h3>Imported record</h3>"
+                            f"<pre>{_e(_pretty(r.trace.output))}</pre></div></div></div>")
+            continue
         blocks.append(f"<div class='rg'><div class='rgh'>{icon}{_e(which)} {'passed' if passed else 'failed'}"
                       f"<span class='m num'>{_ms(r.trace.ms)}, outcome {_e(outcome_of(r.trace))}</span></div>"
                       + (f"<div class='checks'>{failed}</div>" if failed else "")
@@ -613,13 +622,15 @@ def _detail(case, rs, regressed: bool, fixed: bool) -> str:
                       + _timeline(r.trace)
                       + f"<div class='outbox'><div class='box'><h3>Final output</h3><pre>{_e(_pretty(r.trace.output))}</pre></div></div></div>")
     expected = _pretty(case.expected) if case.expected else "Nothing beyond running without an error."
+    io_html = ("" if imported and not case.input else
+               f"<div class='io'><div class='box'><h3>Input</h3><pre>{_e(_pretty(case.input))}</pre></div>"
+               + (f"<div class='box'><h3>Expected</h3><pre>{_e(expected)}</pre></div>" if not imported else "")
+               + "</div>")
     return (f"<article class='panel detail' data-id='{_e(case.id)}'>"
             f"<a class='btn back' href='#/cases'>{_icon('back', 13)}&nbsp;All cases</a>"
             f"<div class='dh'><div style='min-width:0'><h2>{_e(case.id)}</h2><div class='tags'>{tags}</div></div>"
             f"<div class='score'><div class='big num'>{n_ok}/{len(rs)}</div><div class='s'>runs passed</div></div></div>"
-            f"<div class='io'><div class='box'><h3>Input</h3><pre>{_e(_pretty(case.input))}</pre></div>"
-            f"<div class='box'><h3>Expected</h3><pre>{_e(expected)}</pre></div></div>"
-            f"{''.join(blocks)}</article>")
+            f"{io_html}{''.join(blocks)}</article>")
 
 
 def _cases_view(run, by_case, regressed, fixed, has_baseline: bool) -> str:
@@ -656,7 +667,9 @@ def _cases_view(run, by_case, regressed, fixed, has_baseline: bool) -> str:
             "<div class='empty' id='empty' hidden><b>No cases match.</b>Try another filter or search term."
             "<br><button type='button' class='btn' id='clear'>Clear filters</button></div></div>"
             f"<div class='detailwrap'>{''.join(details)}</div></div>")
-    return _view("cases", "Cases", "Each case with its checks and the full trace of every run.", body)
+    sub = ("Each case with the result your eval tool recorded for every run." if run.meta.get("imported")
+           else "Each case with its checks and the full trace of every run.")
+    return _view("cases", "Cases", sub, body)
 
 
 def _compare_view(gate_result, baseline) -> str:
