@@ -7,7 +7,7 @@
     </marker>
     <style>
       .lane{fill:#f7f7f5}
-      .lt{font-size:12px;font-weight:600;fill:#52514e;letter-spacing:.02em}
+      .lt{font-size:13px;font-weight:600;fill:#16161a}
       .ls{font-size:12px;fill:#8a8984}
       .num{fill:#16161a}
       .numt{font-size:11px;font-weight:700;fill:#fff}
@@ -27,7 +27,7 @@
   <!-- Lane 1: trust the judge -->
   <rect class="lane" x="16" y="16" width="1008" height="140" rx="14"/>
   <circle class="num" cx="44" cy="40" r="10"/><text class="numt" x="44" y="44" text-anchor="middle">1</text>
-  <text class="lt" x="62" y="44">TRUST THE JUDGE</text>
+  <text class="lt" x="62" y="44">Trust the judge</text>
   <text class="ls" x="190" y="44">once, before an LLM judge may grade anything</text>
 
   <rect class="box" x="40" y="66" width="190" height="70" rx="12"/>
@@ -48,7 +48,7 @@
   <!-- Lane 2: evaluate -->
   <rect class="lane" x="16" y="170" width="1008" height="210" rx="14"/>
   <circle class="num" cx="44" cy="194" r="10"/><text class="numt" x="44" y="198" text-anchor="middle">2</text>
-  <text class="lt" x="62" y="198">EVALUATE</text>
+  <text class="lt" x="62" y="198">Evaluate</text>
   <text class="ls" x="140" y="198">every change to the agent</text>
 
   <rect class="box" x="40" y="218" width="190" height="66" rx="12"/>
@@ -90,7 +90,7 @@
   <!-- Lane 3: decide -->
   <rect class="lane" x="16" y="394" width="1008" height="230" rx="14"/>
   <circle class="num" cx="44" cy="418" r="10"/><text class="numt" x="44" y="422" text-anchor="middle">3</text>
-  <text class="lt" x="62" y="422">DECIDE</text>
+  <text class="lt" x="62" y="422">Decide</text>
   <text class="ls" x="116" y="422">in CI, on every pull request</text>
 
   <rect class="box" x="40" y="480" width="190" height="80" rx="12"/>

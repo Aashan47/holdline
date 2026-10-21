@@ -7,3 +7,4 @@ dist/
 holdline-runs/
 holdline-report.html
 .env
+site/architecture.svg

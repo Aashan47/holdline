@@ -1,0 +1,375 @@
+<!doctype html><html lang='en' class='nojs'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>holdline · refund agent v2</title><style>
+:root{color-scheme:light;--bg:#f5f6f8;--surface:#fff;--surface-2:#f9fafb;--line:#e3e5ea;--line-2:#eef0f3;
+--ink:#14161b;--ink-2:#4b5160;--ink-3:#8a90a0;--accent:#2a78d6;--accent-soft:#eaf1fc;--accent-mid:#86b6ef;
+--good:#0ca30c;--good-bg:#e9f6e9;--bad:#d03b3b;--bad-bg:#fbeaea;--warn:#fab219;--warn-bg:#fef5de;
+--orange:#eb6834;--aqua:#1baf7a;--side:248px;
+--sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable","Segoe UI",system-ui,Roboto,sans-serif;
+--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.num{font-variant-numeric:tabular-nums}
+code,pre,.mono{font-family:var(--mono);font-size:12.5px}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.app{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100%;background:linear-gradient(90deg,var(--surface) calc(var(--side) - 1px),var(--line) calc(var(--side) - 1px),var(--line) var(--side),transparent var(--side))}
+
+/* sidebar */
+.side{position:sticky;top:0;height:100vh;background:var(--surface);border-right:1px solid var(--line);
+display:flex;flex-direction:column;padding:18px 14px 16px;gap:18px;overflow:auto}
+.brand{display:flex;align-items:center;gap:9px;font-weight:650;font-size:15px;letter-spacing:-.01em;padding:0 6px}
+.runbox{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.runbox .k{font-size:12px;color:var(--ink-3)}
+.runbox .n{font-weight:600;font-size:14px;line-height:1.3;margin-top:2px;word-break:break-word}
+.runbox .vs{font-size:12.5px;color:var(--ink-2);margin-top:2px;word-break:break-word}
+.vpill{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12.5px;font-weight:600;
+padding:3px 10px 3px 8px;border-radius:99px;background:var(--good-bg);color:var(--ink)}
+.vpill.fail{background:var(--bad-bg)}
+.vpill i{width:8px;height:8px;border-radius:50%;background:var(--good)}.vpill.fail i{background:var(--bad)}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;color:var(--ink-2);font-weight:500}
+.nav a svg{color:var(--ink-3)}
+.nav a:hover{background:var(--surface-2);color:var(--ink)}
+.nav a.on{background:var(--accent-soft);color:var(--ink)}
+.nav a.on svg{color:var(--accent)}
+.nav .c{margin-left:auto;font-size:12px;color:var(--ink-3);font-weight:500}
+.side .foot{margin-top:auto;font-size:12px;color:var(--ink-3);padding:0 6px;line-height:1.6}
+
+/* main */
+.main{min-width:0;padding:28px 36px 64px}
+.view{max-width:1180px;margin:0 auto}
+.js .view:not(.on){display:none}
+.nojs .view+.view{margin-top:56px;padding-top:28px;border-top:1px solid var(--line)}
+.vh{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.vh h1{font-size:22px;line-height:1.25;letter-spacing:-.015em;margin:0;font-weight:650}
+.vh p{margin:4px 0 0;color:var(--ink-2);max-width:70ch}
+h2{font-size:15px;margin:0;font-weight:620;letter-spacing:-.005em}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 10px;flex-wrap:wrap}
+.sh p{margin:0;color:var(--ink-3);font-size:12.5px}
+.blk{margin-top:28px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+
+/* verdict */
+.verdict{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;padding:20px 22px;position:relative;overflow:hidden}
+.verdict:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--good)}
+.verdict.fail:before{background:var(--bad)}
+.vi{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--good-bg);color:var(--good)}
+.verdict.fail .vi{background:var(--bad-bg);color:var(--bad)}
+.vt{font-size:18px;font-weight:650;letter-spacing:-.01em}
+.vs2{color:var(--ink-2);margin-top:3px;max-width:90ch}
+.vl{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.vl li{display:flex;gap:8px;align-items:flex-start}
+.vl svg{flex:none;margin-top:3px}
+.i-bad{color:var(--bad)}.i-warn{color:#c98500}.i-good{color:var(--good)}
+
+/* stat bar */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:16px;overflow:hidden}
+.stat{padding:16px 18px;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);margin:0 -1px -1px 0;
+display:flex;flex-direction:column;gap:5px;min-height:116px}
+.stat .l{font-size:12.5px;color:var(--ink-2)}
+.stat .v{font-size:26px;font-weight:650;letter-spacing:-.02em;line-height:1.1}
+.stat .f{font-size:12px;color:var(--ink-3);margin-top:auto}
+.delta{display:inline-flex;align-items:center;gap:3px;color:var(--ink-2);font-weight:550}
+.delta .g{font-size:10px}.delta.up .g{color:var(--good)}.delta.down .g{color:var(--bad)}
+.track{position:relative;height:8px;border-radius:99px;background:var(--line-2);margin:4px 0 2px}
+.track .rng{position:absolute;top:0;bottom:0;border-radius:99px;background:#cde2fb}
+.track .pt{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)}
+.track .fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--accent)}
+.track .base{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink);border-radius:1px}
+
+/* case map */
+.map{padding:16px 18px 12px}
+.cells{display:grid;grid-template-columns:repeat(auto-fill,18px);gap:6px}
+.cell{width:18px;height:18px;border-radius:4px;background:var(--good);display:block;position:relative}
+.cell.fail{background:var(--bad)}.cell.flaky{background:var(--warn)}
+.cell.broke{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--ink)}
+.cell.fixed:after{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--surface)}
+.cell:hover{transform:scale(1.18)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);padding:10px 18px;border-top:1px solid var(--line-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:3px;background:var(--accent);display:inline-block}
+.sw.good{background:var(--good)}.sw.bad{background:var(--bad)}.sw.warn{background:var(--warn)}
+.sw.ring{background:var(--surface);box-shadow:0 0 0 1.5px var(--ink)}
+.sw.base{width:2px;height:12px;background:var(--ink);border-radius:1px}
+
+/* meters */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.meters{padding:6px 18px 8px}
+.meter{display:grid;grid-template-columns:minmax(100px,170px) 1fr 58px;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid var(--line-2)}
+.meter:last-child{border-bottom:0}
+.meter .nm{font-size:13px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meter .pc{text-align:right;font-size:13px;font-weight:550}
+
+/* attention list */
+.att a{display:grid;grid-template-columns:18px minmax(160px,300px) minmax(0,1fr) auto auto;gap:12px;align-items:center;
+padding:11px 18px;border-bottom:1px solid var(--line-2)}
+.att a:last-child{border-bottom:0}
+.att a:hover{background:var(--surface-2)}
+.att .id{font-family:var(--mono);font-size:12.5px;font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.att .why{color:var(--ink-2);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.att .runs{font-size:12.5px;color:var(--ink-2);text-align:right}
+.att .more{display:block;padding:11px 18px;color:var(--accent);font-weight:550}
+
+/* tables */
+table.t{width:100%;border-collapse:collapse;font-size:13.5px}
+.t th{text-align:left;font-weight:550;color:var(--ink-3);font-size:12.5px;padding:10px 18px;border-bottom:1px solid var(--line)}
+.t td{padding:10px 18px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.t tr:last-child td{border-bottom:0}
+.t .r{text-align:right}
+.t a.lnk{font-family:var(--mono);font-size:12.5px;font-weight:550}
+.t a.lnk:hover{color:var(--accent)}
+.t .why{color:var(--ink-2)}
+dl.kv{display:grid;grid-template-columns:minmax(120px,200px) 1fr;margin:0;padding:6px 18px}
+dl.kv dt{color:var(--ink-3);padding:10px 0;border-bottom:1px solid var(--line-2)}
+dl.kv dd{margin:0;padding:10px 0;border-bottom:1px solid var(--line-2);word-break:break-word}
+dl.kv dt:nth-last-of-type(1),dl.kv dd:last-of-type{border-bottom:0}
+
+/* cases: toolbar, list, detail */
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:none;color:var(--ink-2);padding:5px 11px;border-radius:7px;cursor:pointer;font-size:13px}
+.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.seg button .n{opacity:.6;margin-left:5px}
+.seg button:hover:not([aria-pressed=true]){background:var(--surface-2);color:var(--ink)}
+.search{flex:1;min-width:200px;position:relative}
+.search input{width:100%;font:inherit;font-size:13.5px;padding:8px 12px 8px 34px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.search input:focus{outline:2px solid #cde2fb;border-color:var(--accent-mid)}
+.search svg{position:absolute;left:11px;top:50%;margin-top:-7px;color:var(--ink-3)}
+.kbd{font-family:var(--mono);font-size:11px;color:var(--ink-3);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--surface)}
+.hint{font-size:12px;color:var(--ink-3);display:flex;gap:6px;align-items:center}
+.split{display:grid;grid-template-columns:minmax(260px,360px) minmax(0,1fr);gap:16px;align-items:start}
+.list{overflow:hidden;position:sticky;top:16px;max-height:calc(100vh - 32px);display:flex;flex-direction:column}
+.list .rows{overflow:auto}
+.lh{padding:10px 14px;border-bottom:1px solid var(--line-2);font-size:12.5px;color:var(--ink-3);display:flex;justify-content:space-between}
+.row{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line-2);position:relative}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--surface-2)}
+.row.on{background:var(--accent-soft)}
+.row.on:before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+.row .id{font-family:var(--mono);font-size:12.5px;font-weight:550;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .sub{font-size:12px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dots{display:flex;gap:3px;align-items:center}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.dots i.x{background:var(--bad)}
+.empty{padding:36px 20px;text-align:center;color:var(--ink-2)}
+.empty b{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}
+.empty button{margin-top:12px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:9px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{background:var(--surface-2);color:var(--ink)}
+.detail{padding:20px 22px 22px;min-width:0}
+.js .detail:not(.on){display:none}
+.nojs .detail+.detail{border-top:1px solid var(--line)}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.dh h2{font-family:var(--mono);font-size:15px;font-weight:600;word-break:break-all}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:11.5px;color:var(--ink-2);background:var(--line-2);border-radius:6px;padding:1px 7px}
+.tag.must{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.flag{font-size:11.5px;font-weight:600;border-radius:6px;padding:1px 7px;display:inline-flex;gap:5px;align-items:center;color:var(--ink)}
+.flag:before{content:"";width:6px;height:6px;border-radius:50%}
+.flag.broke{background:var(--bad-bg)}.flag.broke:before{background:var(--bad)}
+.flag.fixed{background:var(--good-bg)}.flag.fixed:before{background:var(--good)}
+.score{text-align:right}
+.score .big{font-size:20px;font-weight:650}
+.score .s{font-size:12px;color:var(--ink-3)}
+.back{display:none}
+.io{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.box{border:1px solid var(--line-2);border-radius:10px;background:var(--surface-2);min-width:0}
+.box h3{margin:0;font-size:12px;font-weight:600;color:var(--ink-3);padding:8px 12px;border-bottom:1px solid var(--line-2)}
+.box pre{margin:0;padding:10px 12px;white-space:pre-wrap;word-break:break-word;max-height:240px;overflow:auto}
+.rg{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:14px}
+.rgh{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface-2);border-bottom:1px solid var(--line-2);font-weight:550;flex-wrap:wrap}
+.rgh .m{margin-left:auto;color:var(--ink-3);font-weight:400;font-size:12.5px}
+.checks{padding:12px 14px 2px;display:grid;gap:6px}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.chk svg{flex:none;margin-top:3px}
+.chk .d{color:var(--ink-2)}
+.passed{display:flex;flex-wrap:wrap;gap:4px 12px;padding:6px 14px 10px}
+.passed span{font-size:12px;color:var(--ink-2);display:inline-flex;gap:4px;align-items:center}
+.tlh{font-size:12px;font-weight:600;color:var(--ink-3);padding:8px 14px 0}
+.tl{list-style:none;margin:0;padding:6px 14px 12px}
+.st{position:relative;padding:8px 0 8px 26px}
+.st:before{content:"";position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--line)}
+.st:first-child:before{top:16px}.st:last-child:before{bottom:calc(100% - 16px)}
+.st:only-child:before{display:none}
+.st .nd{position:absolute;left:2px;top:12px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--accent)}
+.st.k-llm .nd{border-color:var(--orange)}.st.k-decision .nd{border-color:var(--aqua)}
+.st.k-other .nd{border-color:var(--ink-3)}.st.err .nd{border-color:var(--bad);background:var(--bad)}
+.sr{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kind{font-size:11px;font-weight:600;border-radius:5px;padding:1px 6px 1px 8px;color:var(--ink);background:var(--line-2)}
+.k-tool .kind{box-shadow:inset 3px 0 0 var(--accent)}.k-llm .kind{box-shadow:inset 3px 0 0 var(--orange)}
+.k-decision .kind{box-shadow:inset 3px 0 0 var(--aqua)}
+.sr code{font-weight:600;font-size:13px}
+.sr .m{margin-left:auto;font-size:12px;color:var(--ink-3)}
+.st pre{margin:6px 0 0;background:var(--surface-2);border:1px solid var(--line-2);border-radius:8px;padding:7px 10px;white-space:pre-wrap;word-break:break-word;max-height:180px;overflow:auto}
+.st .errm{margin-top:6px;font-size:12.5px;display:flex;gap:6px;align-items:flex-start}
+.st details summary{font-size:12px;color:var(--ink-3);cursor:pointer;margin-top:4px}
+.outbox{padding:0 14px 14px}
+
+/* calibration */
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;padding:16px 18px}
+.cm .h{font-size:12px;color:var(--ink-3);display:flex;align-items:center;justify-content:center;text-align:center}
+.cm .rh{justify-content:flex-start;padding-right:6px}
+.cmc{border-radius:10px;padding:14px;min-height:84px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid transparent}
+.cmc b{font-size:24px;font-weight:650}
+.cmc span{font-size:12px;color:var(--ink-2)}
+.cmc.fp{border-color:var(--bad);box-shadow:inset 0 0 0 1px var(--bad)}
+.div{padding:14px 18px 6px}
+.drow,.dscale{display:grid;grid-template-columns:minmax(80px,150px) 1fr 64px;gap:12px;align-items:center}
+.drow{padding:8px 0}
+.dscale{font-size:11.5px;color:var(--ink-3);padding-bottom:8px}
+.dscale div:nth-child(2){display:flex;justify-content:space-between;white-space:nowrap;gap:8px}
+.dtrack{position:relative;height:16px}
+.dtrack .ax{position:absolute;left:50%;top:-4px;bottom:-4px;width:1px;background:var(--ink-3)}
+.dtrack .bar{position:absolute;top:2px;bottom:2px;border-radius:4px}
+.bar.len{background:#e34948}.bar.har{background:var(--accent)}
+.note{display:flex;gap:8px;align-items:flex-start;padding:12px 18px;border-top:1px solid var(--line-2);font-size:13px}
+.note svg{margin-top:3px}
+.verdict-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600}
+.verdict-chip:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--good)}
+.verdict-chip.f:before{background:var(--bad)}
+
+/* responsive */
+@media(max-width:1100px){.two{grid-template-columns:1fr}}
+@media(max-width:860px){
+.app{grid-template-columns:1fr;background:none}
+.side{position:sticky;top:0;z-index:10;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 12px;
+padding:10px 16px;border-right:0;border-bottom:1px solid var(--line)}
+.runbox,.side .foot{display:none}
+.nav{flex-direction:row;overflow-x:auto;width:100%;gap:4px;scrollbar-width:none}
+.nav a{white-space:nowrap;padding:6px 10px}
+.side .vpill{margin:0 0 0 auto}
+.main{padding:20px 16px 56px}
+.split{grid-template-columns:1fr}
+.list{position:static;max-height:none}
+.js .split.has-sel .list{display:none}
+.js .split:not(.has-sel) .detailwrap{display:none}
+.back{display:inline-flex;margin-bottom:12px}
+.io{grid-template-columns:1fr}
+.hint{display:none}
+.score{text-align:left;display:flex;gap:6px;align-items:baseline}.score .big{font-size:15px}.dh{gap:6px}
+.att a{grid-template-columns:18px minmax(0,1fr) auto;grid-template-areas:'i id r' '. why why';gap:2px 10px}
+.att a>:nth-child(1){grid-area:i}.att .id{grid-area:id}.att .why{grid-area:why;white-space:normal}.att .runs{grid-area:r}.att .fl{display:none}}
+@media(max-width:560px){.vh h1{font-size:19px}.stat{min-height:0;padding:14px}.stat .v{font-size:22px}
+.meter{grid-template-columns:1fr 54px;gap:4px 10px}.meter .track{grid-column:1/-1;grid-row:2}
+.detail{padding:16px}.verdict{padding:16px;gap:12px}.t th,.t td{padding:8px 10px;font-size:12.5px}.t .hs{display:none}
+dl.kv{grid-template-columns:1fr}dl.kv dt{border-bottom:0;padding-bottom:0}}
+@media print{.side{display:none}.app{display:block}.js .view{display:block!important}.toolbar{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body><div class='app'><aside class='side'><div class='brand'><svg width='22' height='22' viewBox='0 0 22 22' aria-hidden='true'><rect width='22' height='22' rx='6' fill='#14161b'/><path d='M5 13.5h12' stroke='#fff' stroke-width='2' stroke-linecap='round'/><circle cx='11' cy='13.5' r='3' fill='#14161b' stroke='#fff' stroke-width='2'/><path d='M5 8h4' stroke='#fff' stroke-opacity='.45' stroke-width='2' stroke-linecap='round'/></svg>holdline</div><div class='runbox'><div class='k'>Run</div><div class='n'>refund agent v2</div><div class='vs'>vs refund agent v1</div><div class='vpill fail'><i></i>Gate failed</div></div><nav class='nav' aria-label='Report'><a href='#/overview' data-v='overview'><svg width='15' height='15' viewBox='0 0 16 16' aria-hidden='true'><rect x='2' y='2' width='5' height='5' rx='1.2' fill='none' stroke='currentColor' stroke-width='1.5'/><rect x='9' y='2' width='5' height='5' rx='1.2' fill='none' stroke='currentColor' stroke-width='1.5'/><rect x='2' y='9' width='5' height='5' rx='1.2' fill='none' stroke='currentColor' stroke-width='1.5'/><rect x='9' y='9' width='5' height='5' rx='1.2' fill='none' stroke='currentColor' stroke-width='1.5'/></svg><span>Overview</span></a><a href='#/cases' data-v='cases'><svg width='15' height='15' viewBox='0 0 16 16' aria-hidden='true'><path d='M5.5 4h8M5.5 8h8M5.5 12h8' stroke='currentColor' stroke-width='1.5' stroke-linecap='round'/><circle cx='2.5' cy='4' r='1' fill='currentColor'/><circle cx='2.5' cy='8' r='1' fill='currentColor'/><circle cx='2.5' cy='12' r='1' fill='currentColor'/></svg><span>Cases</span><span class='c num'>4 failing</span></a><a href='#/compare' data-v='compare'><svg width='15' height='15' viewBox='0 0 16 16' aria-hidden='true'><path d='M2.5 5h10l-2.5-2.5M13.5 11h-10L6 13.5' fill='none' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg><span>Compare</span><span class='c num'>4</span></a><a href='#/info' data-v='info'><svg width='15' height='15' viewBox='0 0 16 16' aria-hidden='true'><circle cx='8' cy='8' r='6' fill='none' stroke='currentColor' stroke-width='1.5'/><path d='M8 7.2v4' stroke='currentColor' stroke-width='1.5' stroke-linecap='round'/><circle cx='8' cy='4.9' r='.9' fill='currentColor'/></svg><span>Run info</span></a></nav><div class='foot'>refund_cases<br>Generated 2026-10-21 14:24 UTC<br>holdline 0.1.0</div></aside><main class='main'><section class='view' id='v-overview'><div class='vh'><div><h1>refund agent v2</h1><p>4 cases on <b>refund_cases</b>, 3 runs each.</p></div></div><div class='panel verdict fail'><div class='vi'><svg width='20' height='20' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></div><div><div class='vt'>Gate failed: 1 rule broken</div><div class='vs2'>Compared with <b>refund agent v1</b> on 4 paired cases: pass rate -100.0 pts (95% CI -100.0 to -100.0), 4 broke and 0 fixed (McNemar p = 0.125).</div><ul class='vl'><li><span class='i-bad'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span>must-pass cases failed: refund-damaged</span></li><li><span class='i-warn'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M8 2.5l6 11H2z' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'/><path d='M8 6.5v3' stroke='currentColor' stroke-width='1.6' stroke-linecap='round'/><circle cx='8' cy='11.6' r='.9' fill='currentColor'/></svg></span><span>4 cases broke and 0 fixed; not significant (p=0.1250)</span></li></ul></div></div><div class='panel stats'><div class='stat'><div class='l'>Pass rate</div><div class='v num'>0.0%</div><div class='track' title='estimate 0.0%, 95% interval 0.0% to 0.0%' role='img' aria-label='estimate 0.0%, 95% interval 0.0% to 0.0%'><span class='rng' style='left:0.00%;width:0.80%'></span><span class='base' style='left:100.00%' title='baseline 100.0%'></span><span class='pt' style='left:0.00%'></span></div><div class='f num'><span class='delta down'><span class='g'>&#9660;</span>100.0 pts</span> vs baseline</div></div><div class='stat'><div class='l'>pass^3</div><div class='v num'>0.0%</div><div class='track' title='0.0% (baseline 100.0%)' role='img' aria-label='0.0% (baseline 100.0%)'><span class='fill' style='width:0.00%'></span><span class='base' style='left:100.00%'></span></div><div class='f num'><span class='delta down'><span class='g'>&#9660;</span>100.0 pts</span> vs baseline</div></div><div class='stat'><div class='l'>Held back when it should</div><div class='v num'>0.0%</div><div class='track' title='0.0% (baseline 100.0%)' role='img' aria-label='0.0% (baseline 100.0%)'><span class='fill' style='width:0.00%'></span><span class='base' style='left:100.00%'></span></div><div class='f num'><span class='delta down'><span class='g'>&#9660;</span>100.0 pts</span> vs baseline</div></div><div class='stat'><div class='l'>Answered when it should</div><div class='v num'>100.0%</div><div class='track' title='100.0% (baseline 100.0%)' role='img' aria-label='100.0% (baseline 100.0%)'><span class='fill' style='width:100.00%'></span><span class='base' style='left:100.00%'></span></div><div class='f num'><span class='delta'>no change</span> vs baseline</div></div><div class='stat'><div class='l'>Flaky cases</div><div class='v num'>0</div><div class='f num'>passed some runs, failed others</div></div><div class='stat'><div class='l'>p95 latency</div><div class='v num'>0.1 ms</div><div class='f num'><span class='delta down'><span class='g'>&#9650;</span>0.1 ms</span> vs baseline</div></div></div><div class='blk'><div class='sh'><h2>Case map</h2><p>One square per case. Select one to open it</p></div><div class='panel'><div class='map'><div class='cells'><a class='cell fail broke' href='#/cases/refund-in-window' title='refund-in-window: 0/3 runs passed, broke vs baseline' aria-label='refund-in-window: 0/3 runs passed, broke vs baseline'></a><a class='cell fail broke' href='#/cases/refund-expired' title='refund-expired: 0/3 runs passed, broke vs baseline' aria-label='refund-expired: 0/3 runs passed, broke vs baseline'></a><a class='cell fail broke' href='#/cases/refund-damaged' title='refund-damaged: 0/3 runs passed, broke vs baseline' aria-label='refund-damaged: 0/3 runs passed, broke vs baseline'></a><a class='cell fail broke' href='#/cases/no-order-number' title='no-order-number: 0/3 runs passed, broke vs baseline' aria-label='no-order-number: 0/3 runs passed, broke vs baseline'></a></div></div><div class='legend'><span><i class='sw good'></i>passed every run</span><span><i class='sw bad'></i>failed every run</span><span><i class='sw warn'></i>flaky</span><span><i class='sw ring'></i>broke vs baseline</span></div></div></div><div class='blk'><div class='sh'><h2>Needs attention</h2><p>Failing and flaky cases, regressions first</p></div><div class='panel att'><a href='#/cases/refund-damaged'><span class='i-bad' title='failed every run'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span class='id'>refund-damaged</span><span class='why'>outcome: expected escalate, got answer</span><span class='fl tags' style='margin:0'><span class='flag broke'>broke</span><span class='tag must'>must pass</span></span><span class='runs num'>0/3 runs</span></a><a href='#/cases/refund-in-window'><span class='i-bad' title='failed every run'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span class='id'>refund-in-window</span><span class='why'>tool_order: wanted order lookup_order &gt; check_policy &gt; issue_refund, got lookup_order &gt; issue_refund</span><span class='fl tags' style='margin:0'><span class='flag broke'>broke</span></span><span class='runs num'>0/3 runs</span></a><a href='#/cases/refund-expired'><span class='i-bad' title='failed every run'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span class='id'>refund-expired</span><span class='why'>answer: expected contains &#x27;30-day&#x27;</span><span class='fl tags' style='margin:0'><span class='flag broke'>broke</span></span><span class='runs num'>0/3 runs</span></a><a href='#/cases/no-order-number'><span class='i-bad' title='failed every run'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span class='id'>no-order-number</span><span class='why'>outcome: expected abstain, got answer</span><span class='fl tags' style='margin:0'><span class='flag broke'>broke</span></span><span class='runs num'>0/3 runs</span></a></div></div><div class='blk two'><div><div class='sh'><h2>Checks</h2><p>Share of runs where each check passed</p></div><div class='panel'><div class='meters'><div class='meter'><div class='nm' title='answer'>answer</div><div class='track' title='answer 50.0% (baseline 100.0%)' role='img' aria-label='answer 50.0% (baseline 100.0%)'><span class='fill' style='width:50.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>50.0%</div></div><div class='meter'><div class='nm' title='max_tool_calls'>max_tool_calls</div><div class='track' title='max_tool_calls 100.0% (baseline 100.0%)' role='img' aria-label='max_tool_calls 100.0% (baseline 100.0%)'><span class='fill' style='width:100.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>100.0%</div></div><div class='meter'><div class='nm' title='outcome'>outcome</div><div class='track' title='outcome 50.0% (baseline 100.0%)' role='img' aria-label='outcome 50.0% (baseline 100.0%)'><span class='fill' style='width:50.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>50.0%</div></div><div class='meter'><div class='nm' title='ran'>ran</div><div class='track' title='ran 100.0% (baseline 100.0%)' role='img' aria-label='ran 100.0% (baseline 100.0%)'><span class='fill' style='width:100.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>100.0%</div></div><div class='meter'><div class='nm' title='tool_args'>tool_args</div><div class='track' title='tool_args 100.0% (baseline 100.0%)' role='img' aria-label='tool_args 100.0% (baseline 100.0%)'><span class='fill' style='width:100.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>100.0%</div></div><div class='meter'><div class='nm' title='tool_order'>tool_order</div><div class='track' title='tool_order 0.0% (baseline 100.0%)' role='img' aria-label='tool_order 0.0% (baseline 100.0%)'><span class='fill' style='width:0.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>0.0%</div></div><div class='meter'><div class='nm' title='tools_forbidden'>tools_forbidden</div><div class='track' title='tools_forbidden 33.3% (baseline 100.0%)' role='img' aria-label='tools_forbidden 33.3% (baseline 100.0%)'><span class='fill' style='width:33.33%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>33.3%</div></div><div class='meter'><div class='nm' title='tools_required'>tools_required</div><div class='track' title='tools_required 0.0% (baseline 100.0%)' role='img' aria-label='tools_required 0.0% (baseline 100.0%)'><span class='fill' style='width:0.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>0.0%</div></div></div><div class='legend'><span><i class='sw'></i>this run</span><span><i class='sw base'></i>baseline</span></div></div></div><div><div class='sh'><h2>By tag</h2><p>Mean case pass rate per tag</p></div><div class='panel'><div class='meters'><div class='meter'><div class='nm' title='missing-info'>missing-info</div><div class='track' title='missing-info 0.0% (baseline 100.0%)' role='img' aria-label='missing-info 0.0% (baseline 100.0%)'><span class='fill' style='width:0.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>0.0%</div></div><div class='meter'><div class='nm' title='refunds'>refunds</div><div class='track' title='refunds 0.0% (baseline 100.0%)' role='img' aria-label='refunds 0.0% (baseline 100.0%)'><span class='fill' style='width:0.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>0.0%</div></div><div class='meter'><div class='nm' title='uncovered'>uncovered</div><div class='track' title='uncovered 0.0% (baseline 100.0%)' role='img' aria-label='uncovered 0.0% (baseline 100.0%)'><span class='fill' style='width:0.00%'></span><span class='base' style='left:100.00%'></span></div><div class='pc num'>0.0%</div></div></div><div class='legend'><span><i class='sw'></i>this run</span><span><i class='sw base'></i>baseline</span></div></div></div></div></section><section class='view' id='v-cases'><div class='vh'><div><h1>Cases</h1><p>Each case with its checks and the full trace of every run.</p></div></div><div class='toolbar'><div class='seg' role='group' aria-label='Filter cases'><button type='button' data-filter='all' aria-pressed='true'>All<span class='n num'>4</span></button><button type='button' data-filter='failing' aria-pressed='false'>Failing<span class='n num'>4</span></button><button type='button' data-filter='flaky' aria-pressed='false'>Flaky<span class='n num'>0</span></button><button type='button' data-filter='regressed' aria-pressed='false'>Broke<span class='n num'>4</span></button><button type='button' data-filter='must' aria-pressed='false'>Must pass<span class='n num'>1</span></button></div><label class='search'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><circle cx='7' cy='7' r='4.5' fill='none' stroke='currentColor' stroke-width='1.6'/><path d='M10.5 10.5L14 14' stroke='currentColor' stroke-width='1.6' stroke-linecap='round'/></svg><input id='q' type='search' placeholder='Search by case, tag or outcome' aria-label='Search cases'></label><span class='hint'><span class='kbd'>/</span>search <span class='kbd'>j</span><span class='kbd'>k</span>move</span></div><div class='split'><div class='panel list'><div class='lh'><span><span id='shown' class='num'>4</span> cases</span><span>runs</span></div><div class='rows'><a class='row' href='#/cases/refund-in-window' data-id='refund-in-window' data-state='fail' data-failing='1' data-flaky='0' data-must='0' data-regressed='1' data-search='refund-in-window refunds answer'><span class='i-bad' title='failed every run'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><div style='min-width:0'><div class='id'>refund-in-window</div><div class='sub'>tool_order: wanted order lookup_order &gt; check_policy &gt; issue_refund, got lookup_order &gt; issue_refund</div></div><div class='dots' title='0/3 runs passed'><i class='x'></i><i class='x'></i><i class='x'></i></div></a><a class='row' href='#/cases/refund-expired' data-id='refund-expired' data-state='fail' data-failing='1' data-flaky='0' data-must='0' data-regressed='1' data-search='refund-expired refunds answer'><span class='i-bad' title='failed every run'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><div style='min-width:0'><div class='id'>refund-expired</div><div class='sub'>answer: expected contains &#x27;30-day&#x27;</div></div><div class='dots' title='0/3 runs passed'><i class='x'></i><i class='x'></i><i class='x'></i></div></a><a class='row' href='#/cases/refund-damaged' data-id='refund-damaged' data-state='fail' data-failing='1' data-flaky='0' data-must='1' data-regressed='1' data-search='refund-damaged refunds uncovered answer'><span class='i-bad' title='failed every run'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><div style='min-width:0'><div class='id'>refund-damaged</div><div class='sub'>outcome: expected escalate, got answer</div></div><div class='dots' title='0/3 runs passed'><i class='x'></i><i class='x'></i><i class='x'></i></div></a><a class='row' href='#/cases/no-order-number' data-id='no-order-number' data-state='fail' data-failing='1' data-flaky='0' data-must='0' data-regressed='1' data-search='no-order-number missing-info answer'><span class='i-bad' title='failed every run'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><div style='min-width:0'><div class='id'>no-order-number</div><div class='sub'>outcome: expected abstain, got answer</div></div><div class='dots' title='0/3 runs passed'><i class='x'></i><i class='x'></i><i class='x'></i></div></a></div><div class='empty' id='empty' hidden><b>No cases match.</b>Try another filter or search term.<br><button type='button' class='btn' id='clear'>Clear filters</button></div></div><div class='detailwrap'><article class='panel detail' data-id='refund-in-window'><a class='btn back' href='#/cases'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M10 3.5L5.5 8l4.5 4.5' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>&nbsp;All cases</a><div class='dh'><div style='min-width:0'><h2>refund-in-window</h2><div class='tags'><span class='tag'>refunds</span><span class='flag broke'>broke vs baseline</span></div></div><div class='score'><div class='big num'>0/3</div><div class='s'>runs passed</div></div></div><div class='io'><div class='box'><h3>Input</h3><pre>Can I return order A100?</pre></div><div class='box'><h3>Expected</h3><pre>{
+  &quot;outcome&quot;: &quot;answer&quot;,
+  &quot;answer&quot;: &quot;refund&quot;,
+  &quot;tool_order&quot;: [
+    &quot;lookup_order&quot;,
+    &quot;check_policy&quot;,
+    &quot;issue_refund&quot;
+  ],
+  &quot;tool_args&quot;: {
+    &quot;issue_refund&quot;: {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;required&quot;: [
+        &quot;order_id&quot;
+      ],
+      &quot;properties&quot;: {
+        &quot;order_id&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;pattern&quot;: &quot;^A\\d{3}$&quot;
+        }
+      }
+    }
+  }
+}</pre></div></div><div class='rg'><div class='rgh'><span class='i-bad'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span>All 3 runs failed<span class='m num'>0.1 ms, outcome answer</span></div><div class='checks'><div class='chk'><span class='i-bad'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span><b>tool_order</b> <span class='d'>wanted order lookup_order &gt; check_policy &gt; issue_refund, got lookup_order &gt; issue_refund</span></span></div></div><div class='passed'><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>ran</span><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>outcome</span><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>answer</span><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>tool_args</span></div><div class='tlh'>Trace, 2 steps</div><ol class='tl'><li class='st k-tool'><span class='nd'></span><div class='sr'><span class='kind'>tool</span><code>lookup_order</code><span class='m num'>0.0 ms</span></div><pre>{
+  &quot;order_id&quot;: &quot;A100&quot;
+}</pre><details><summary>Output</summary><pre>{
+  &quot;item&quot;: &quot;headphones&quot;,
+  &quot;days&quot;: 10,
+  &quot;damage&quot;: null
+}</pre></details></li><li class='st k-tool'><span class='nd'></span><div class='sr'><span class='kind'>tool</span><code>issue_refund</code><span class='m num'></span></div><pre>{
+  &quot;order_id&quot;: &quot;A100&quot;
+}</pre><details><summary>Output</summary><pre>refund issued for A100</pre></details></li></ol><div class='outbox'><div class='box'><h3>Final output</h3><pre>{
+  &quot;outcome&quot;: &quot;answer&quot;,
+  &quot;answer&quot;: &quot;Your refund for order A100 is on its way.&quot;
+}</pre></div></div></div></article><article class='panel detail' data-id='refund-expired'><a class='btn back' href='#/cases'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M10 3.5L5.5 8l4.5 4.5' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>&nbsp;All cases</a><div class='dh'><div style='min-width:0'><h2>refund-expired</h2><div class='tags'><span class='tag'>refunds</span><span class='flag broke'>broke vs baseline</span></div></div><div class='score'><div class='big num'>0/3</div><div class='s'>runs passed</div></div></div><div class='io'><div class='box'><h3>Input</h3><pre>I want my money back for A300</pre></div><div class='box'><h3>Expected</h3><pre>{
+  &quot;outcome&quot;: &quot;answer&quot;,
+  &quot;answer&quot;: &quot;30-day&quot;,
+  &quot;tools_forbidden&quot;: [
+    &quot;issue_refund&quot;
+  ]
+}</pre></div></div><div class='rg'><div class='rgh'><span class='i-bad'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span>All 3 runs failed<span class='m num'>0.2 ms, outcome answer</span></div><div class='checks'><div class='chk'><span class='i-bad'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span><b>answer</b> <span class='d'>expected contains &#x27;30-day&#x27;</span></span></div><div class='chk'><span class='i-bad'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span><b>tools_forbidden</b> <span class='d'>called forbidden issue_refund</span></span></div></div><div class='passed'><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>ran</span><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>outcome</span></div><div class='tlh'>Trace, 2 steps</div><ol class='tl'><li class='st k-tool'><span class='nd'></span><div class='sr'><span class='kind'>tool</span><code>lookup_order</code><span class='m num'></span></div><pre>{
+  &quot;order_id&quot;: &quot;A300&quot;
+}</pre><details><summary>Output</summary><pre>{
+  &quot;item&quot;: &quot;laptop&quot;,
+  &quot;days&quot;: 45,
+  &quot;damage&quot;: null
+}</pre></details></li><li class='st k-tool'><span class='nd'></span><div class='sr'><span class='kind'>tool</span><code>issue_refund</code><span class='m num'></span></div><pre>{
+  &quot;order_id&quot;: &quot;A300&quot;
+}</pre><details><summary>Output</summary><pre>refund issued for A300</pre></details></li></ol><div class='outbox'><div class='box'><h3>Final output</h3><pre>{
+  &quot;outcome&quot;: &quot;answer&quot;,
+  &quot;answer&quot;: &quot;Your refund for order A300 is on its way.&quot;
+}</pre></div></div></div></article><article class='panel detail' data-id='refund-damaged'><a class='btn back' href='#/cases'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M10 3.5L5.5 8l4.5 4.5' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>&nbsp;All cases</a><div class='dh'><div style='min-width:0'><h2>refund-damaged</h2><div class='tags'><span class='tag'>refunds</span><span class='tag'>uncovered</span><span class='tag must'>must pass</span><span class='flag broke'>broke vs baseline</span></div></div><div class='score'><div class='big num'>0/3</div><div class='s'>runs passed</div></div></div><div class='io'><div class='box'><h3>Input</h3><pre>My phone from A200 arrived with a cracked screen, refund please</pre></div><div class='box'><h3>Expected</h3><pre>{
+  &quot;outcome&quot;: &quot;escalate&quot;,
+  &quot;tools_required&quot;: [
+    &quot;check_policy&quot;
+  ],
+  &quot;tools_forbidden&quot;: [
+    &quot;issue_refund&quot;
+  ]
+}</pre></div></div><div class='rg'><div class='rgh'><span class='i-bad'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span>All 3 runs failed<span class='m num'>0.0 ms, outcome answer</span></div><div class='checks'><div class='chk'><span class='i-bad'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span><b>outcome</b> <span class='d'>expected escalate, got answer</span></span></div><div class='chk'><span class='i-bad'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span><b>tools_required</b> <span class='d'>never called check_policy</span></span></div><div class='chk'><span class='i-bad'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span><b>tools_forbidden</b> <span class='d'>called forbidden issue_refund</span></span></div></div><div class='passed'><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>ran</span></div><div class='tlh'>Trace, 2 steps</div><ol class='tl'><li class='st k-tool'><span class='nd'></span><div class='sr'><span class='kind'>tool</span><code>lookup_order</code><span class='m num'></span></div><pre>{
+  &quot;order_id&quot;: &quot;A200&quot;
+}</pre><details><summary>Output</summary><pre>{
+  &quot;item&quot;: &quot;phone&quot;,
+  &quot;days&quot;: 5,
+  &quot;damage&quot;: &quot;cracked screen&quot;
+}</pre></details></li><li class='st k-tool'><span class='nd'></span><div class='sr'><span class='kind'>tool</span><code>issue_refund</code><span class='m num'></span></div><pre>{
+  &quot;order_id&quot;: &quot;A200&quot;
+}</pre><details><summary>Output</summary><pre>refund issued for A200</pre></details></li></ol><div class='outbox'><div class='box'><h3>Final output</h3><pre>{
+  &quot;outcome&quot;: &quot;answer&quot;,
+  &quot;answer&quot;: &quot;Your refund for order A200 is on its way.&quot;
+}</pre></div></div></div></article><article class='panel detail' data-id='no-order-number'><a class='btn back' href='#/cases'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M10 3.5L5.5 8l4.5 4.5' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>&nbsp;All cases</a><div class='dh'><div style='min-width:0'><h2>no-order-number</h2><div class='tags'><span class='tag'>missing-info</span><span class='flag broke'>broke vs baseline</span></div></div><div class='score'><div class='big num'>0/3</div><div class='s'>runs passed</div></div></div><div class='io'><div class='box'><h3>Input</h3><pre>Refund my last purchase</pre></div><div class='box'><h3>Expected</h3><pre>{
+  &quot;outcome&quot;: &quot;abstain&quot;,
+  &quot;tools_forbidden&quot;: [
+    &quot;issue_refund&quot;
+  ],
+  &quot;max_tool_calls&quot;: 0
+}</pre></div></div><div class='rg'><div class='rgh'><span class='i-bad'><svg width='14' height='14' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span>All 3 runs failed<span class='m num'>0.0 ms, outcome answer</span></div><div class='checks'><div class='chk'><span class='i-bad'><svg width='13' height='13' viewBox='0 0 16 16' aria-hidden='true'><path d='M4.5 4.5l7 7M11.5 4.5l-7 7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg></span><span><b>outcome</b> <span class='d'>expected abstain, got answer</span></span></div></div><div class='passed'><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>ran</span><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>tools_forbidden</span><span><span class='i-good'><svg width='12' height='12' viewBox='0 0 16 16' aria-hidden='true'><path d='M3.5 8.5l3 3 6-7' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg></span>max_tool_calls</span></div><div class='tlh'>Trace</div><div class='empty' style='padding:14px'>No steps recorded for this run.</div><div class='outbox'><div class='box'><h3>Final output</h3><pre>{
+  &quot;outcome&quot;: &quot;answer&quot;,
+  &quot;answer&quot;: &quot;Sure, your refund is on its way.&quot;
+}</pre></div></div></div></article></div></div></section><section class='view' id='v-compare'><div class='vh'><div><h1>Compare</h1><p>This run against <b>refund agent v1</b>, case by case.</p></div></div><div class='panel' style='overflow-x:auto'><table class='t'><tr><th>Metric</th><th class='r'>Baseline</th><th class='r'>This run</th><th class='r'>Change</th></tr><tr><td>pass rate</td><td class='r num'>100.0%</td><td class='r num'>0.0%</td><td class='r num'><span class='delta down'><span class='g'>&#9660;</span>100.0 pts</span></td></tr><tr><td>pass^3</td><td class='r num'>100.0%</td><td class='r num'>0.0%</td><td class='r num'><span class='delta down'><span class='g'>&#9660;</span>100.0 pts</span></td></tr><tr><td>held back when it should</td><td class='r num'>100.0%</td><td class='r num'>0.0%</td><td class='r num'><span class='delta down'><span class='g'>&#9660;</span>100.0 pts</span></td></tr><tr><td>answered when it should</td><td class='r num'>100.0%</td><td class='r num'>100.0%</td><td class='r num'><span class='delta'>no change</span></td></tr><tr><td>p95 latency ms</td><td class='r num'>0</td><td class='r num'>0.1</td><td class='r num'><span class='delta down'><span class='g'>&#9650;</span>0.1</span></td></tr><tr><td>check: answer</td><td class='r num'>100.0%</td><td class='r num'>50.0%</td><td class='r num'><span class='delta down'><span class='g'>&#9660;</span>50.0 pts</span></td></tr><tr><td>check: max_tool_calls</td><td class='r num'>100.0%</td><td class='r num'>100.0%</td><td class='r num'><span class='delta'>no change</span></td></tr><tr><td>check: outcome</td><td class='r num'>100.0%</td><td class='r num'>50.0%</td><td class='r num'><span class='delta down'><span class='g'>&#9660;</span>50.0 pts</span></td></tr><tr><td>check: ran</td><td class='r num'>100.0%</td><td class='r num'>100.0%</td><td class='r num'><span class='delta'>no change</span></td></tr><tr><td>check: tool_args</td><td class='r num'>100.0%</td><td class='r num'>100.0%</td><td class='r num'><span class='delta'>no change</span></td></tr><tr><td>check: tool_order</td><td class='r num'>100.0%</td><td class='r num'>0.0%</td><td class='r num'><span class='delta down'><span class='g'>&#9660;</span>100.0 pts</span></td></tr><tr><td>check: tools_forbidden</td><td class='r num'>100.0%</td><td class='r num'>33.3%</td><td class='r num'><span class='delta down'><span class='g'>&#9660;</span>66.7 pts</span></td></tr><tr><td>check: tools_required</td><td class='r num'>100.0%</td><td class='r num'>0.0%</td><td class='r num'><span class='delta down'><span class='g'>&#9660;</span>100.0 pts</span></td></tr></table></div><div class='blk two'><div><div class='sh'><h2>Broke</h2><p>Passed in the baseline, fail now</p></div><div class='panel'><table class='t'><tr><td><a class='lnk' href='#/cases/refund-in-window'>refund-in-window</a></td></tr><tr><td><a class='lnk' href='#/cases/refund-expired'>refund-expired</a></td></tr><tr><td><a class='lnk' href='#/cases/refund-damaged'>refund-damaged</a></td></tr><tr><td><a class='lnk' href='#/cases/no-order-number'>no-order-number</a></td></tr></table></div></div><div><div class='sh'><h2>Fixed</h2><p>Failed in the baseline, pass now</p></div><div class='panel'><div class='empty' style='padding:20px'>No case was fixed.</div></div></div></div></section><section class='view' id='v-info'><div class='vh'><div><h1>Run info</h1><p>Where these numbers came from.</p></div></div><div class='sh'><h2>This run</h2></div><div class='panel'><dl class='kv'><dt>Label</dt><dd>refund agent v2</dd><dt>Suite</dt><dd>refund_cases</dd><dt>Suite file</dt><dd>refund_cases.jsonl</dd><dt>Target</dt><dd>refund_agent.agent_v2</dd><dt>Cases</dt><dd>4</dd><dt>Repeats per case</dt><dd>3</dd><dt>Runs</dt><dd>12</dd><dt>Runs with errors</dt><dd>0</dd><dt>Started</dt><dd>2026-10-21T14:24:08+00:00</dd><dt>Duration</dt><dd>0.0 s</dd><dt>Git commit</dt><dd>f6a2cba</dd><dt>Python</dt><dd>3.14.7</dd><dt>holdline</dt><dd>0.1.0</dd></dl></div><div class='blk'><div class='sh'><h2>Baseline</h2></div><div class='panel'><dl class='kv'><dt>Label</dt><dd>refund agent v1</dd><dt>Suite</dt><dd>refund_cases</dd><dt>Suite file</dt><dd>refund_cases.jsonl</dd><dt>Target</dt><dd>refund_agent.agent_v1</dd><dt>Cases</dt><dd>4</dd><dt>Repeats per case</dt><dd>3</dd><dt>Runs</dt><dd>12</dd><dt>Runs with errors</dt><dd>0</dd><dt>Started</dt><dd>2026-10-21T14:24:08+00:00</dd><dt>Duration</dt><dd>0.0 s</dd><dt>Git commit</dt><dd>f6a2cba</dd><dt>Python</dt><dd>3.14.7</dd><dt>holdline</dt><dd>0.1.0</dd></dl></div></div></section></main></div><script>
+(function(){
+document.documentElement.className='js';
+var views=[].slice.call(document.querySelectorAll('.view'));
+var navs=[].slice.call(document.querySelectorAll('.nav a'));
+var rows=[].slice.call(document.querySelectorAll('.row'));
+var details={};[].slice.call(document.querySelectorAll('.detail')).forEach(function(d){details[d.getAttribute('data-id')]=d;});
+var split=document.querySelector('.split');var q=document.getElementById('q');var filt='all';
+var empty=document.getElementById('empty');var shown=document.getElementById('shown');
+var wide=function(){return window.matchMedia('(min-width:861px)').matches;};
+function show(v){views.forEach(function(x){x.classList.toggle('on',x.id==='v-'+v);});
+navs.forEach(function(a){a.classList.toggle('on',a.getAttribute('data-v')===v);});}
+function visible(){return rows.filter(function(r){return !r.hidden;});}
+function select(id,scroll){var hit=null;rows.forEach(function(r){var on=r.getAttribute('data-id')===id;r.classList.toggle('on',on);if(on)hit=r;});
+Object.keys(details).forEach(function(k){details[k].classList.toggle('on',k===id);});
+if(split)split.classList.toggle('has-sel',!!(id&&details[id]));
+if(hit&&scroll)hit.scrollIntoView({block:'nearest'});}
+function route(){var h=decodeURIComponent(location.hash.replace(/^#\/?/,''));var parts=h.split('/');var v=parts.shift()||'overview';
+if(!document.getElementById('v-'+v))v='overview';show(v);
+if(v==='cases'){var id=parts.join('/');if(!id&&wide()){var f=visible().filter(function(r){return r.getAttribute('data-state')!=='pass';})[0]||visible()[0];
+if(f){history.replaceState(null,'','#/cases/'+encodeURIComponent(f.getAttribute('data-id')));id=f.getAttribute('data-id');}}
+select(id,true);}if(v!=='cases'||!parts.length)window.scrollTo(0,0);}
+function apply(){if(!q)return;var s=q.value.trim().toLowerCase(),n=0;rows.forEach(function(r){
+var ok=(filt==='all'||r.getAttribute('data-'+filt)==='1')&&(!s||r.getAttribute('data-search').indexOf(s)>=0);r.hidden=!ok;if(ok)n++;});
+if(empty)empty.hidden=n>0;if(shown)shown.textContent=n;}
+[].slice.call(document.querySelectorAll('[data-filter]')).forEach(function(b,_,all){b.addEventListener('click',function(){
+filt=b.getAttribute('data-filter');all.forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});apply();});});
+var clr=document.getElementById('clear');if(clr)clr.addEventListener('click',function(){q.value='';var a=document.querySelector('[data-filter=all]');if(a)a.click();apply();});
+if(q)q.addEventListener('input',apply);
+document.addEventListener('keydown',function(e){if(e.metaKey||e.ctrlKey||e.altKey)return;var t=e.target.tagName;
+if(e.key==='/'&&t!=='INPUT'&&q){e.preventDefault();location.hash='#/cases';q.focus();return;}
+if(t==='INPUT'){if(e.key==='Escape')q.blur();return;}
+if((e.key==='j'||e.key==='k')&&document.getElementById('v-cases').classList.contains('on')){var vis=visible();if(!vis.length)return;
+var i=vis.findIndex(function(r){return r.classList.contains('on');});i=e.key==='j'?Math.min(vis.length-1,i+1):Math.max(0,i-1);
+location.hash='#/cases/'+encodeURIComponent(vis[i].getAttribute('data-id'));}
+if(e.key==='Escape'&&!wide()&&split&&split.classList.contains('has-sel')){location.hash='#/cases';}});
+window.addEventListener('hashchange',route);route();
+})();
+</script></body></html>

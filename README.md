@@ -8,8 +8,12 @@ trusting it, and fails the pull request when a change makes the agent measurably
 Zero runtime dependencies. Python 3.9+. Works with any agent you can call from Python.
 
 ```bash
-pip install holdline        # or: pip install git+https://github.com/Aashan47/holdline
+pip install git+https://github.com/Aashan47/holdline@v0.1.0
 ```
+
+**[Website and live reports](https://aashan47.github.io/holdline/)** · [a real report](https://aashan47.github.io/holdline/demo/helpdesk-gate.html) from the helpdesk-agent run below
+
+[![A holdline report: gate passed, pass rate with its interval, pass^3, a case map and the cases that need attention](site/img/report-overview.png)](https://aashan47.github.io/holdline/demo/helpdesk-gate.html)
 
 ## Why
 
