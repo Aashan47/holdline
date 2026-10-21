@@ -117,7 +117,7 @@ def cmd_calibrate(a) -> int:
                               min_n=a.min_n)
     print(json.dumps(rep, indent=1) if a.json else report.calibration_text(rep))
     _write(a.out, json.dumps(rep, indent=1))
-    _write(a.html, report.calibration_html(rep, a.label) if a.html else "")
+    _write(a.html, report.calibration_html(rep, a.label, items) if a.html else "")
     return 1 if a.strict and not rep["fit_to_gate"] else 0
 
 
