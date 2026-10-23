@@ -146,6 +146,8 @@ p = 0.125), which is why the practical rules exist alongside the test.
 The job summary gets the Markdown verdict; the HTML report is a single self-contained file
 (no network requests) you can upload as an artifact.
 
+For the full setup, from the first baseline to a required status check, see the [CI guide](docs/ci-guide.md).
+
 ## Dogfood: helpdesk-agent
 
 [`examples/helpdesk/`](examples/helpdesk) runs holdline on
