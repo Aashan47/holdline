@@ -14,7 +14,7 @@ import json
 import random
 import re
 from collections import defaultdict
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from . import stats
 from .checks import answer_text

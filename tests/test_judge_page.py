@@ -7,8 +7,8 @@ import shutil
 import subprocess
 
 import pytest
-
 from conftest import EXAMPLES, ROOT
+
 from holdline.judge import calibrate, load_labels
 
 JS = os.path.join(ROOT, "site", "judge", "judge.js")
@@ -47,7 +47,7 @@ def test_synthetic_labels_match_python():
 
 def test_random_label_sets_match_python():
     rng = random.Random(11)
-    for trial in range(20):
+    for _ in range(20):
         n = rng.randint(4, 90)
         items = [{"human": rng.random() < 0.6, "judge": rng.random() < 0.6,
                   "group": rng.choice(["a", "b", "c"])} for _ in range(n)]

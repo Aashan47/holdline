@@ -92,7 +92,7 @@ def cohen_kappa(a: Sequence, b: Sequence, labels: Optional[Sequence] = None) -> 
         return float("nan")
     labels = list(labels) if labels is not None else sorted(set(a) | set(b), key=str)
     po = sum(x == y for x, y in zip(a, b)) / n
-    pe = sum((list(a).count(l) / n) * (list(b).count(l) / n) for l in labels)
+    pe = sum((list(a).count(lab) / n) * (list(b).count(lab) / n) for lab in labels)
     if pe >= 1.0:
         return 1.0 if po == 1.0 else 0.0
     return (po - pe) / (1 - pe)

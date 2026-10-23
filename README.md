@@ -1,5 +1,10 @@
 # holdline
 
+[![CI](https://github.com/Aashan47/holdline/actions/workflows/ci.yml/badge.svg)](https://github.com/Aashan47/holdline/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/holdline)](https://pypi.org/project/holdline/)
+[![Python](https://img.shields.io/pypi/pyversions/holdline)](https://pypi.org/project/holdline/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 **Hold the line on agent quality.** holdline is an eval and regression gate for AI agents. It
 records what your agent did, checks the trajectory as well as the answer, runs every case several
 times because agents are not deterministic, measures your LLM judge against human labels before
@@ -181,6 +186,14 @@ Raw runs, traces and the gate report are in [`examples/helpdesk/results/`](examp
 1. **Trust the judge** (once): compare the LLM judge with human labels; a judge that is not fit may not grade.
 2. **Evaluate** (every change): run each case k times, record a trace, grade every run, save `run.json`.
 3. **Decide** (in CI): compare with a baseline run case by case and return PASS or FAIL with the reasons.
+
+## Contributing
+
+Contributions are welcome, especially reports of where the gate or the judge check gets it wrong,
+importers for other eval tools, and adapters for agent frameworks. Start with
+[CONTRIBUTING.md](CONTRIBUTING.md); questions go to
+[Discussions](https://github.com/Aashan47/holdline/discussions). Please follow the
+[Code of Conduct](CODE_OF_CONDUCT.md), and report security problems privately ([SECURITY.md](SECURITY.md)).
 
 ## License
 

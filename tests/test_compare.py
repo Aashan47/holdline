@@ -1,8 +1,8 @@
 import json
 
 import pytest
-
 from conftest import EXAMPLES
+
 from holdline import cli, gate
 from holdline.importers import ResultsError, as_pass, load_results
 from holdline.runner import Run

@@ -39,3 +39,12 @@ holdline = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+extend-exclude = ["site", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I"]
+ignore = ["E501", "E731"]   # long data/HTML lines and small lambdas are deliberate here

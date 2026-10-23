@@ -19,8 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
-from . import __version__
-from . import stats
+from . import __version__, stats
 from .checks import CheckResult, evaluate, outcome_of
 from .suite import Case, Suite
 from .trace import Trace, bind, unbind

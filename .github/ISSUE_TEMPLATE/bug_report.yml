@@ -1,0 +1,47 @@
+name: Bug report
+description: Something gave a wrong result, crashed, or behaved unexpectedly.
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting. A small file that reproduces it is the fastest path to a fix. Please remove anything private first.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where did it happen?
+      options:
+        - holdline run / gate (my agent)
+        - holdline compare (result files)
+        - Judge check (browser) or holdline calibrate
+        - HTML report
+        - GitHub Action
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      placeholder: The gate passed although 6 cases broke; I expected it to fail.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: The command or code you ran, and the input files (attach or paste a few rows).
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: holdline version
+      placeholder: "holdline --version"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version and OS
+      placeholder: "3.12 on Ubuntu 24.04"

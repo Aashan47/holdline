@@ -15,8 +15,8 @@ from typing import Callable, Optional
 
 from . import judge as judge_mod
 from . import report, suite
-from .importers import ResultsError, load_results
 from .gate import GateConfig, gate
+from .importers import ResultsError, load_results
 from .runner import Run, run
 
 

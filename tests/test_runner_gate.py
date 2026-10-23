@@ -2,10 +2,10 @@ import asyncio
 import random
 
 import pytest
-
-import holdline
 import refund_agent
 from conftest import EXAMPLES
+
+import holdline
 from holdline import GateConfig, gate, run, suite
 from holdline.runner import Run
 from holdline.suite import from_list

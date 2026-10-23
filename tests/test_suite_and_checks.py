@@ -1,9 +1,9 @@
 import json
 
 import pytest
+from conftest import EXAMPLES
 
 import holdline
-from conftest import EXAMPLES
 from holdline import suite
 from holdline.checks import evaluate, match_answer, outcome_of, token_f1, validate
 from holdline.suite import Case, SuiteError

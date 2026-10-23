@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/Aashan47/holdline/discussions
+    about: Ask how to use holdline or share what you're building with it.
+  - name: Report a security problem
+    url: https://github.com/Aashan47/holdline/security/advisories/new
+    about: Please report vulnerabilities privately, not in a public issue.
