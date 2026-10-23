@@ -134,7 +134,7 @@ p = 0.125), which is why the practical rules exist alongside the test.
 
 ```yaml
 # .github/workflows/agent-evals.yml
-- uses: Aashan47/holdline@v0.1.0
+- uses: Aashan47/holdline@v0.2.1
   with:
     suite: evals/cases.jsonl
     target: my_agent:run
@@ -145,6 +145,8 @@ p = 0.125), which is why the practical rules exist alongside the test.
 
 The job summary gets the Markdown verdict; the HTML report is a single self-contained file
 (no network requests) you can upload as an artifact.
+
+For the full setup, from the first baseline to a required status check, see the [CI guide](docs/ci-guide.md).
 
 ## Dogfood: helpdesk-agent
 
