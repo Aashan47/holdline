@@ -5,10 +5,17 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-23
+
 ### Added
 - Contributor setup: contributing guide, code of conduct, security policy, issue forms, pull request
   template, code owners, Dependabot for GitHub Actions.
 - Lint job (ruff) in CI, and a release workflow that publishes to PyPI on version tags.
+
+### Changed
+- GitHub Actions used by the workflows updated (checkout 7, setup-python 6, upload-artifact 7,
+  download-artifact 8).
+- Lint fixes across the code (import order, an unused import, clearer variable names).
 
 ### Fixed
 - The browser judge check confirms a copy on the button itself, not only in a toast.
@@ -36,6 +43,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Gate: paired McNemar test, bootstrap interval, must-pass cases, abstention floor, budgets.
 - CLI, single-file HTML reports, Markdown summaries, composite GitHub Action.
 
-[Unreleased]: https://github.com/Aashan47/holdline/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Aashan47/holdline/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Aashan47/holdline/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Aashan47/holdline/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Aashan47/holdline/releases/tag/v0.1.0

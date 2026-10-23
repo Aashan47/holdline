@@ -4,7 +4,7 @@ Trace what an agent does, check it against cases, measure the LLM judge before t
 fail the pull request when a change makes the agent measurably worse.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 from .checks import CheckResult, check  # noqa: E402
 from .gate import GateConfig, GateResult, gate  # noqa: E402
