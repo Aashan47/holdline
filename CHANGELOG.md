@@ -4,6 +4,8 @@ Notable changes to holdline. The format follows [Keep a Changelog](https://keepa
 and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+### Added
 - Add a CI guide (`docs/ci-guide.md`) covering the GitHub Action, `holdline compare` for results from other eval tools, guard rails, baseline refresh, and troubleshooting.
 
 ## [0.2.1] - 2026-10-23

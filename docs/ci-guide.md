@@ -6,8 +6,31 @@ Commands run from the root of a clone of the repository, because the examples us
 
 The outputs below were produced by running the commands in order. Latency is the only value that differs between machines: the `latency p50 ... p95 ... ms` lines change, and the `p95 latency ms` table row is left out when both values are 0.
 
+## Quick start
+
+**1. Write a suite.** Install holdline with `pip install holdline` and list your cases in a `.jsonl` file. See [Write a suite](#1-write-a-suite).
+
+**2. Save a baseline.** Run the suite on `main` and commit the result. Use your own suite and target in place of the example ones. See [Save a baseline](#3-save-a-baseline).
+
+```bash
+holdline run --suite examples/refund_cases.jsonl --target examples/refund_agent.py:agent_v1 --label baseline --out .holdline/baseline.json
+```
+
+**3. Add the GitHub Action.** Put this step in your pull request workflow. See [Add the GitHub Action](#4-add-the-github-action).
+
+```yaml
+- uses: Aashan47/holdline@v0.2.1
+  with:
+    suite: evals/cases.jsonl
+    target: my_agent:run
+    baseline: .holdline/baseline.json
+```
+
+To gate results from another eval tool, see [Workflow B](#workflow-b-gate-results-from-another-eval-tool). For other CI systems, see [Other CI systems](#other-ci-systems).
+
 ## Contents
 
+- [Quick start](#quick-start)
 - [How the gate decides](#how-the-gate-decides)
 - [Workflow A: holdline runs your agent](#workflow-a-holdline-runs-your-agent)
 - [Workflow B: gate results from another eval tool](#workflow-b-gate-results-from-another-eval-tool)
@@ -35,7 +58,7 @@ The gate asks whether the same cases got worse. It pairs cases by id between a b
 
 For the McNemar test a case counts as passing only if all of its repeats passed.
 
-Small suites cannot reach significance. On 20 cases, four regressions and no fixes give p = 0.125, five give 0.0625 and six give 0.03125. This is why `max_drop` exists: it catches a drop the test cannot confirm.
+Few broken cases cannot reach significance. With no fixes, four regressions give p = 0.125, five give 0.0625 and six give 0.03125, whatever the suite size. Six is the fewest that gets below 0.05. This is why `max_drop` exists: it catches a drop the test cannot confirm.
 
 Exit codes: `0` the gate passed, `1` the gate failed, `2` bad input or usage (missing file, unknown column, bad config key).
 
