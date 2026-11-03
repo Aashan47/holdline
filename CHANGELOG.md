@@ -5,6 +5,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-03
+
 ### Added
 - Add a CI guide (`docs/ci-guide.md`) covering the GitHub Action, `holdline compare` for results from other eval tools, guard rails, baseline refresh, and troubleshooting.
 
@@ -60,7 +62,8 @@ All three were found by Huerte while writing the CI guide.
 - Gate: paired McNemar test, bootstrap interval, must-pass cases, abstention floor, budgets.
 - CLI, single-file HTML reports, Markdown summaries, composite GitHub Action.
 
-[Unreleased]: https://github.com/Aashan47/holdline/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/Aashan47/holdline/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/Aashan47/holdline/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/Aashan47/holdline/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Aashan47/holdline/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Aashan47/holdline/releases/tag/v0.1.0

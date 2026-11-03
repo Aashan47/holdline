@@ -19,7 +19,7 @@ holdline run --suite examples/refund_cases.jsonl --target examples/refund_agent.
 **3. Add the GitHub Action.** Put this step in your pull request workflow. See [Add the GitHub Action](#4-add-the-github-action).
 
 ```yaml
-- uses: Aashan47/holdline@v0.2.1
+- uses: Aashan47/holdline@v0.2.2
   with:
     suite: evals/cases.jsonl
     target: my_agent:run
@@ -182,7 +182,7 @@ jobs:
       - name: Install the agent
         run: pip install -e .
 
-      - uses: Aashan47/holdline@v0.2.1
+      - uses: Aashan47/holdline@v0.2.2
         with:
           suite: evals/cases.jsonl
           target: my_agent:run

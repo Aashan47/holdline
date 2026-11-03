@@ -134,7 +134,7 @@ p = 0.125), which is why the practical rules exist alongside the test.
 
 ```yaml
 # .github/workflows/agent-evals.yml
-- uses: Aashan47/holdline@v0.2.1
+- uses: Aashan47/holdline@v0.2.2
   with:
     suite: evals/cases.jsonl
     target: my_agent:run
