@@ -20,8 +20,10 @@ jobs:
       - run: ruff check src tests examples
 
   test:
-    runs-on: ubuntu-latest
+    # ubuntu-latest moved to 26.04, which has no Python 3.9 build; 24.04 still does
+    runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         python: ["3.9", "3.11", "3.13"]
     steps:
