@@ -173,6 +173,14 @@ def _pct(values: list, q: float) -> float:
     return s[min(len(s) - 1, int(round(q * (len(s) - 1))))]
 
 
+def pass_hat(run: Run, k: int) -> Optional[float]:
+    """Mean pass^k over the cases with at least k runs; None if no case has k runs. Works for any
+    k up to the repeats observed, so two runs with different repeats compare at the smaller k."""
+    vals = [stats.pass_hat_k(len(rs), sum(r.passed for r in rs), k)
+            for rs in run.by_case().values() if len(rs) >= k]
+    return round(sum(vals) / len(vals), 4) if vals else None
+
+
 def summarise(run: Run) -> dict:
     by_case = run.by_case()
     k = run.meta.get("repeats", 1)
@@ -180,8 +188,6 @@ def summarise(run: Run) -> dict:
     est, lo, hi = stats.bootstrap_mean(list(fractions.values())) if fractions else (0, 0, 0)
     runs_passed = sum(r.passed for r in run.results)
 
-    pass_hat = [stats.pass_hat_k(len(rs), sum(r.passed for r in rs), k)
-                for rs in by_case.values() if len(rs) >= k]
     flaky = [cid for cid, rs in by_case.items() if 0 < sum(r.passed for r in rs) < len(rs)]
 
     check_rates = defaultdict(lambda: [0, 0])
@@ -210,7 +216,7 @@ def summarise(run: Run) -> dict:
         "cases": len(run.cases), "repeats": k, "runs": len(run.results),
         "pass_rate": round(est, 4), "pass_rate_ci": [round(lo, 4), round(hi, 4)],
         "runs_passed": runs_passed,
-        f"pass^{k}": round(sum(pass_hat) / len(pass_hat), 4) if pass_hat else None,
+        f"pass^{k}": pass_hat(run, k),
         "flaky_cases": flaky,
         "must_pass_failed": must_fail,
         "errors": sum(1 for r in run.results if r.trace.error),

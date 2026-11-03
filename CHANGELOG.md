@@ -8,6 +8,20 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ### Added
 - Add a CI guide (`docs/ci-guide.md`) covering the GitHub Action, `holdline compare` for results from other eval tools, guard rails, baseline refresh, and troubleshooting.
 
+### Changed
+- CI runs the test matrix on Ubuntu 24.04, since `ubuntu-latest` (26.04) has no Python 3.9 build;
+  `actions/setup-python` updated to 7.
+
+### Fixed
+- The GitHub Action prints the gate verdict and its reasons in the job log; a failing job used to
+  show nothing there (#10).
+- The gate fails when a baseline is given but no case ids match it, instead of passing on zero
+  compared cases (#11).
+- When the baseline and candidate use different repeats, pass^k is compared at the smaller `k` (in
+  the gate table and the HTML report) instead of showing `n/a`, with a warning (#12).
+
+All three were found by Huerte while writing the CI guide.
+
 ## [0.2.1] - 2026-10-23
 
 ### Added

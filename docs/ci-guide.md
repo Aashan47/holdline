@@ -225,7 +225,7 @@ Outputs:
 | `run` | Path of the candidate run JSON |
 | `report` | Path of the HTML report |
 
-The Action runs two commands. This block does the same with fixed values. Inside the Action the gate output is discarded; it is printed here so you can see it.
+The Action runs two commands. This block does the same with fixed values. The Action prints the same gate output in the job log.
 
 ```bash
 export GITHUB_SHA=abcdef1234567
@@ -248,10 +248,12 @@ abcdef1 on refund_cases: 4 cases x 3 = 12 runs
 
 Compared **4** paired cases (`baseline` vs `abcdef1`). Pass-rate change **+0.0 pts** (95% CI +0.0 to +0.0); 0 broke, 0 fixed, McNemar p = 1.0000.
 
+- :warning: baseline used k=1 and candidate k=3; pass^k compared at k=1
+
 | Metric | Baseline | Candidate | Change |
 |---|---:|---:|---:|
 | pass rate | 100.0% | 100.0% | +0.0 pts |
-| pass^3 | n/a | 100.0% | n/a |
+| pass^1 | 100.0% | 100.0% | +0.0 pts |
 | held back when it should | 100.0% | 100.0% | +0.0 pts |
 | answered when it should | 100.0% | 100.0% | +0.0 pts |
 | p95 latency ms | 0.1 | 0.1 | +0 |
@@ -545,11 +547,12 @@ Compared **6** paired cases (`steady` vs `flaky`). Pass-rate change **-5.6 pts**
 
 - :warning: 1 cases broke and 0 fixed; not significant (p=1.0000)
 - :warning: newly flaky cases: q2
+- :warning: baseline used k=1 and candidate k=3; pass^k compared at k=1
 
 | Metric | Baseline | Candidate | Change |
 |---|---:|---:|---:|
 | pass rate | 100.0% | 94.4% | -5.6 pts |
-| pass^3 | n/a | 83.3% | n/a |
+| pass^1 | 100.0% | 94.4% | -5.6 pts |
 | held back when it should | n/a | n/a | n/a |
 | answered when it should | n/a | n/a | n/a |
 | check: answer | 100.0% | 94.4% | -5.6 pts |
@@ -562,7 +565,7 @@ Compared **6** paired cases (`steady` vs `flaky`). Pass-rate change **-5.6 pts**
 </details>
 ```
 
-A flaky case counts as broken for the McNemar test because not every run passed. Newly flaky cases are warnings. Mark a case `must_pass` to turn flakiness into a failure. The baseline and candidate may use different values of `k`.
+A flaky case counts as broken for the McNemar test because not every run passed. Newly flaky cases are warnings. Mark a case `must_pass` to turn flakiness into a failure. The baseline and candidate may use different values of `k`; pass^k is then compared at the smaller one, with a warning.
 
 ### Gate config file
 
@@ -792,7 +795,7 @@ A run that CI already produced can be copied instead:
 cp holdline-runs/candidate-abcdef1.json .holdline/baseline.json
 ```
 
-When you can, use the same `repeats` for the baseline and the candidate so the `pass^k` rows line up.
+When you can, use the same `repeats` for the baseline and the candidate. If they differ, the gate compares `pass^k` at the smaller `k` and says so.
 
 To refresh on every merge to `main`:
 
@@ -902,10 +905,12 @@ local-check on refund_cases: 4 cases x 1 = 4 runs
 
 Compared **4** paired cases (`abcdef1` vs `local-check`). Pass-rate change **+0.0 pts** (95% CI +0.0 to +0.0); 0 broke, 0 fixed, McNemar p = 1.0000.
 
+- :warning: baseline used k=3 and candidate k=1; pass^k compared at k=1
+
 | Metric | Baseline | Candidate | Change |
 |---|---:|---:|---:|
 | pass rate | 100.0% | 100.0% | +0.0 pts |
-| pass^1 | n/a | 100.0% | n/a |
+| pass^1 | 100.0% | 100.0% | +0.0 pts |
 | held back when it should | 100.0% | 100.0% | +0.0 pts |
 | answered when it should | 100.0% | 100.0% | +0.0 pts |
 | p95 latency ms | 0.1 | 0.1 | +0 |
@@ -976,7 +981,7 @@ Compared **5** paired cases (`main` vs `pr-renamed`). Pass-rate change **+0.0 pt
 
 Keep ids stable. When you retire a case, delete it and refresh the baseline.
 
-**The gate can pass with no shared cases.** If the two files share no ids, `paired_cases` is 0, the paired checks have nothing to compare, and the gate passes unless an absolute rule fails. Watch for the `suites differ` warning and set `--min-pass-rate`.
+**The gate fails when no cases pair up.** If the two files share no ids, `paired_cases` is 0 and there is nothing to compare, so the gate fails with a reason. Check the case ids or the baseline path.
 
 ```bash
 printf 'case_id,passed\nx,1\n' > results/only-x.csv
@@ -985,11 +990,11 @@ holdline compare results/only-x.csv results/only-y.csv
 ```
 
 ```text
-## holdline gate: **PASS**
+## holdline gate: **FAIL**
 
 Compared **0** paired cases (`only-x` vs `only-y`). Pass-rate change **+0.0 pts** (95% CI +0.0 to +0.0); 0 broke, 0 fixed, McNemar p = 1.0000.
 
-- :warning: suites differ: 1 cases only in baseline, 1 only in candidate; compared the 0 shared
+- :x: no cases in common with the baseline (1 in baseline, 1 in candidate); check the case ids or the baseline file
 
 | Metric | Baseline | Candidate | Change |
 |---|---:|---:|---:|
@@ -1085,4 +1090,4 @@ error: case 0 (x): unknown expected keys ['bogus']; known: ['answer', 'answer_ma
 
 **The gate exits 0 but a case broke.** One regression is not significant on a small suite. Set `--max-drop`, or mark the case `must_pass`.
 
-**The Action fails but the log shows no reason.** The Action hides the gate output. Read the job summary, or download `holdline-gate.md` and `holdline-report.html` from the uploaded artifact.
+**The Action fails and you need more detail.** The verdict and its reasons are in the job log and the job summary. For the per-case view, download `holdline-report.html` from the uploaded artifact.

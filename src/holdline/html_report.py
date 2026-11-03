@@ -20,6 +20,7 @@ from urllib.parse import quote
 
 from . import __version__
 from .checks import outcome_of, tool_arguments
+from .runner import pass_hat
 
 # -- design tokens ----------------------------------------------------------------------------
 # Light only. Status colours mark state and always travel with an icon and a word; text stays in
@@ -482,9 +483,11 @@ def _stats_bar(run, baseline) -> str:
     cells = [_stat("Pass rate", _pct(s["pass_rate"]),
                    _interval(s["pass_rate"], lo, hi, bs["pass_rate"] if bs else None),
                    (_delta(s["pass_rate"], bs["pass_rate"]) + " vs baseline") if bs else f"95% CI {_pct(lo)} to {_pct(hi)}")]
-    pk = s.get(f"pass^{k}")
-    cells.append(_stat(f"pass^{k}" if k > 1 else "Reliability", _pct(pk), _fill(pk or 0.0, bs.get(f"pass^{k}") if bs else None),
-                       (_delta(pk, bs.get(f"pass^{k}")) + " vs baseline") if bs else
+    pk_k = min(k, bs["repeats"]) if bs else k
+    pk = pass_hat(run, pk_k)
+    bpk = pass_hat(baseline, pk_k) if bs else None
+    cells.append(_stat(f"pass^{pk_k}" if pk_k > 1 else "Reliability", _pct(pk), _fill(pk or 0.0, bpk),
+                       (_delta(pk, bpk) + " vs baseline") if bs else
                        (f"all {k} runs of a case pass" if k > 1 else "run with -k 3 to measure")))
     if s["withheld_when_should"] is not None:
         cells.append(_stat("Held back when it should", _pct(s["withheld_when_should"]),

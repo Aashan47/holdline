@@ -3,10 +3,10 @@ import random
 
 import pytest
 import refund_agent
-from conftest import EXAMPLES
+from conftest import EXAMPLES, ROOT
 
 import holdline
-from holdline import GateConfig, gate, run, suite
+from holdline import GateConfig, gate, report, run, suite
 from holdline.runner import Run
 from holdline.suite import from_list
 
@@ -113,3 +113,31 @@ def test_gate_absolute_rules_without_baseline(cases):
     assert len(res.reasons) == 2
     with pytest.raises(ValueError):
         GateConfig.from_dict({"max_dorp": 0.1})
+
+
+def test_gate_fails_when_no_cases_pair_up():
+    base = run(lambda x: "ok", from_list([{"id": "a", "input": 1}, {"id": "b", "input": 2}]))
+    renamed = run(lambda x: "ok", from_list([{"id": "a2", "input": 1}, {"id": "b2", "input": 2}]))
+    res = gate(renamed, base)
+    assert not res.passed and res.paired_cases == 0
+    assert any("no cases in common" in r for r in res.reasons)
+    assert not any("suites differ" in w for w in res.warnings)
+
+
+def test_pass_hat_compared_at_the_smaller_k(cases):
+    base = run(refund_agent.agent_v1, cases, repeats=1, label="k1")
+    cand = run(refund_agent.agent_v1, cases, repeats=3, label="k3")
+    res = gate(cand, base)
+    row = next(m for m in res.metrics if m["metric"].startswith("pass^"))
+    assert row == {"metric": "pass^1", "baseline": 1.0, "candidate": 1.0, "delta": 0.0}
+    assert any("compared at k=1" in w for w in res.warnings)
+    md = report.gate_markdown(res, cand, base)
+    assert "| pass^1 | 100.0% | 100.0% | +0.0 pts |" in md
+    html = report.run_html(cand, res, base)
+    assert "pass^3" not in html.split("Held back")[0]
+
+
+def test_action_shows_the_gate_verdict_in_the_log():
+    with open(f"{ROOT}/action.yml", encoding="utf-8") as fh:
+        gate_step = fh.read().split("name: Gate", 1)[1]
+    assert "/dev/null" not in gate_step

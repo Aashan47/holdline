@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from . import stats
-from .runner import Run
+from .runner import Run, pass_hat
 
 
 @dataclass
@@ -89,7 +89,10 @@ def gate(candidate: Run, baseline: Optional[Run] = None,
         common = [cid for cid in c_all if cid in b_all]
         only_b = sorted(set(b_all) - set(c_all))
         only_c = sorted(set(c_all) - set(b_all))
-        if only_b or only_c:
+        if not common:
+            res.reasons.append(f"no cases in common with the baseline ({len(b_all)} in baseline, "
+                               f"{len(c_all)} in candidate); check the case ids or the baseline file")
+        elif only_b or only_c:
             res.warnings.append(f"suites differ: {len(only_b)} cases only in baseline, "
                                 f"{len(only_c)} only in candidate; compared the {len(common)} shared")
         res.paired_cases = len(common)
@@ -123,9 +126,12 @@ def gate(candidate: Run, baseline: Optional[Run] = None,
         if new_flaky:
             res.warnings.append(f"newly flaky cases: {', '.join(new_flaky)}")
 
-        k = cs["repeats"]
+        k = min(bs["repeats"], cs["repeats"])
+        if bs["repeats"] != cs["repeats"]:
+            res.warnings.append(f"baseline used k={bs['repeats']} and candidate k={cs['repeats']}; "
+                                f"pass^k compared at k={k}")
         rows = [("pass rate", bs["pass_rate"], cs["pass_rate"]),
-                (f"pass^{k}", bs.get(f"pass^{k}"), cs.get(f"pass^{k}")),
+                (f"pass^{k}", pass_hat(baseline, k), pass_hat(candidate, k)),
                 ("held back when it should", bs["withheld_when_should"], cs["withheld_when_should"]),
                 ("answered when it should", bs["answered_when_should"], cs["answered_when_should"])]
         for name, b, c in (("p95 latency ms", bs["latency_ms"]["p95"], cs["latency_ms"]["p95"]),

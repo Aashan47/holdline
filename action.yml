@@ -96,7 +96,7 @@ runs:
         if [ -n "$HL_MAX_DROP" ]; then args+=(--max-drop "$HL_MAX_DROP"); fi
         if [ -n "$HL_MIN_PASS" ]; then args+=(--min-pass-rate "$HL_MIN_PASS"); fi
         set +e
-        holdline "${args[@]}" > /dev/null
+        holdline "${args[@]}"
         code=$?
         set -e
         echo "report=holdline-report.html" >> "$GITHUB_OUTPUT"
